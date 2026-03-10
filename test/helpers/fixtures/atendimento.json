@@ -1,0 +1,44 @@
+{
+  "id": "f1a2b3c4-d5e6-7890-abcd-111111111111",
+  "clienteId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "usuarioId": "b2c3d4e5-f6a7-8901-bcde-222222222222",
+  "pontoDeSaida": {
+    "enderecoTexto": "Garagem Central, Rua Principal, 100, São Paulo - SP",
+    "latitude": -23.55052,
+    "longitude": -46.633308,
+    "complemento": null
+  },
+  "localDeColeta": {
+    "enderecoTexto": "Av. Paulista, 1000, São Paulo - SP",
+    "latitude": -23.561414,
+    "longitude": -46.655881,
+    "complemento": "Em frente ao banco"
+  },
+  "localDeEntrega": {
+    "enderecoTexto": "Rua Augusta, 500, São Paulo - SP",
+    "latitude": -23.587416,
+    "longitude": -46.657028,
+    "complemento": null
+  },
+  "localDeRetorno": {
+    "enderecoTexto": "Garagem Central, Rua Principal, 100, São Paulo - SP",
+    "latitude": -23.55052,
+    "longitude": -46.633308,
+    "complemento": null
+  },
+  "valorPorKm": 5.0,
+  "distanciaEstimadaKm": 12.5,
+  "distanciaRealKm": null,
+  "valorCobrado": null,
+  "tipoValor": "porKm",
+  "status": "rascunho",
+  "observacoes": "Veículo com pneu furado",
+  "criadoEm": "2026-03-10T08:00:00.000",
+  "atualizadoEm": "2026-03-10T08:00:00.000",
+  "iniciadoEm": null,
+  "chegadaColetaEm": null,
+  "chegadaEntregaEm": null,
+  "inicioRetornoEm": null,
+  "concluidoEm": null,
+  "sincronizadoEm": null
+}

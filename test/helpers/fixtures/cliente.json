@@ -1,0 +1,15 @@
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "nome": "João da Silva",
+  "telefone": "+5511999990000",
+  "documento": "123.456.789-00",
+  "enderecoDefault": {
+    "enderecoTexto": "Rua das Flores, 123, São Paulo - SP",
+    "latitude": -23.55052,
+    "longitude": -46.633308,
+    "complemento": "Portão azul, fundos"
+  },
+  "criadoEm": "2026-03-01T10:00:00.000",
+  "atualizadoEm": "2026-03-01T10:00:00.000",
+  "sincronizadoEm": null
+}
