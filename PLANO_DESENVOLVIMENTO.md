@@ -1049,14 +1049,14 @@ void main() {
 
 #### Tarefas
 
-- [ ] **S3-01:** Criar `GeoService` interface + implementação (Google Places + geolocator)
-- [ ] **S3-02:** Implementar cache local de geocoding no Drift
-- [ ] **S3-03:** [TDD] Lógica de fallback offline para geocoding
-- [ ] **S3-04:** Criar `LocalSelectorWidget` com as 4 opções (Seção 9)
-- [ ] **S3-05:** Integrar autocomplete Google Places no widget
-- [ ] **S3-06:** Integrar `flutter_map` para seleção no mapa
-- [ ] **S3-07:** Integrar GPS atual com reverse geocoding
-- [ ] **S3-08:** Widget test do `LocalSelectorWidget`
+- [x] **S3-01:** Criar `GeoService` interface + implementação (Google Places + geolocator)
+- [x] **S3-02:** Implementar cache local de geocoding no Drift
+- [x] **S3-03:** [TDD] Lógica de fallback offline para geocoding
+- [x] **S3-04:** Criar `LocalSelectorWidget` com as 4 opções (Seção 9)
+- [x] **S3-05:** Integrar autocomplete Google Places no widget
+- [x] **S3-06:** Integrar `flutter_map` para seleção no mapa
+- [x] **S3-07:** Integrar GPS atual com reverse geocoding
+- [x] **S3-08:** Widget test do `LocalSelectorWidget`
 
 **Critério de aceite:** Widget funciona em todas as 4 modalidades, exibe endereço textual após seleção, funciona offline para bases e localização atual.
 
