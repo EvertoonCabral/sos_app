@@ -47,8 +47,19 @@ import '../../features/cliente/domain/repositories/cliente_repository.dart'
 import '../../features/cliente/domain/usecases/atualizar_cliente.dart' as _i427;
 import '../../features/cliente/domain/usecases/buscar_clientes.dart' as _i294;
 import '../../features/cliente/domain/usecases/criar_cliente.dart' as _i829;
+import '../../features/rastreamento/data/datasources/rastreamento_local_datasource.dart'
+    as _i556;
+import '../../features/rastreamento/domain/repositories/rastreamento_repository.dart'
+    as _i22;
+import '../../features/rastreamento/domain/usecases/calcular_valor_real.dart'
+    as _i228;
+import '../../features/rastreamento/domain/usecases/obter_percurso.dart'
+    as _i906;
+import '../../features/rastreamento/domain/usecases/registrar_ponto.dart'
+    as _i844;
 import '../database/app_database.dart' as _i982;
 import '../geo/geo_service.dart' as _i643;
+import '../geo/gps_collector.dart' as _i513;
 import '../network/http_client.dart' as _i1069;
 import '../network/network_info.dart' as _i932;
 import '../network/network_info_impl.dart' as _i865;
@@ -61,6 +72,7 @@ import 'modules/cliente_module.dart' as _i763;
 import 'modules/core_module.dart' as _i134;
 import 'modules/database_module.dart' as _i664;
 import 'modules/network_module.dart' as _i851;
+import 'modules/rastreamento_module.dart' as _i237;
 
 extension GetItInjectableX on _i174.GetIt {
 // initializes the registration of main-scope dependencies inside of GetIt
@@ -76,6 +88,7 @@ extension GetItInjectableX on _i174.GetIt {
     final databaseModule = _$DatabaseModule();
     final networkModule = _$NetworkModule();
     final coreModule = _$CoreModule();
+    final rastreamentoModule = _$RastreamentoModule();
     final authModule = _$AuthModule();
     final atendimentoModule = _$AtendimentoModule();
     final baseModule = _$BaseModule();
@@ -87,6 +100,8 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i11.DistanceCalculator>(
         () => coreModule.distanceCalculator);
     gh.lazySingleton<_i643.GeoService>(() => coreModule.geoService);
+    gh.lazySingleton<_i513.GpsCollector>(
+        () => rastreamentoModule.gpsCollector());
     gh.lazySingleton<_i161.AuthRemoteDatasource>(
         () => authModule.authRemoteDatasource(gh<_i361.Dio>()));
     gh.lazySingleton<_i992.AuthLocalDatasource>(
@@ -101,6 +116,8 @@ extension GetItInjectableX on _i174.GetIt {
         () => clienteModule.clienteLocalDatasource(gh<_i982.AppDatabase>()));
     gh.lazySingleton<_i145.SyncQueueDatasource>(
         () => coreModule.syncQueueDatasource(gh<_i982.AppDatabase>()));
+    gh.lazySingleton<_i556.RastreamentoLocalDatasource>(() => rastreamentoModule
+        .rastreamentoLocalDatasource(gh<_i982.AppDatabase>()));
     gh.singleton<_i932.NetworkInfo>(
         () => _i865.NetworkInfoImpl(gh<_i895.Connectivity>()));
     gh.lazySingleton<_i787.AuthRepository>(() => authModule.authRepository(
@@ -117,6 +134,11 @@ extension GetItInjectableX on _i174.GetIt {
         () => authModule.autenticarUsuario(gh<_i787.AuthRepository>()));
     gh.lazySingleton<_i209.ObterUsuarioLogado>(
         () => authModule.obterUsuarioLogado(gh<_i787.AuthRepository>()));
+    gh.lazySingleton<_i22.RastreamentoRepository>(
+        () => rastreamentoModule.rastreamentoRepository(
+              gh<_i556.RastreamentoLocalDatasource>(),
+              gh<_i145.SyncQueueDatasource>(),
+            ));
     gh.singleton<_i1069.HttpClient>(() => _i1069.HttpClient(
           gh<_i361.Dio>(),
           gh<_i558.FlutterSecureStorage>(),
@@ -136,10 +158,19 @@ extension GetItInjectableX on _i174.GetIt {
           gh<_i221.BaseLocalDatasource>(),
           gh<_i145.SyncQueueDatasource>(),
         ));
+    gh.lazySingleton<_i228.CalcularValorReal>(
+        () => rastreamentoModule.calcularValorReal(
+              gh<_i22.RastreamentoRepository>(),
+              gh<_i11.DistanceCalculator>(),
+            ));
     gh.lazySingleton<_i760.ListarAtendimentos>(() => atendimentoModule
         .listarAtendimentos(gh<_i846.AtendimentoRepository>()));
     gh.lazySingleton<_i824.AtualizarStatusAtendimento>(() => atendimentoModule
         .atualizarStatusAtendimento(gh<_i846.AtendimentoRepository>()));
+    gh.lazySingleton<_i844.RegistrarPonto>(() =>
+        rastreamentoModule.registrarPonto(gh<_i22.RastreamentoRepository>()));
+    gh.lazySingleton<_i906.ObterPercurso>(() =>
+        rastreamentoModule.obterPercurso(gh<_i22.RastreamentoRepository>()));
     gh.lazySingleton<_i829.CriarCliente>(
         () => clienteModule.criarCliente(gh<_i37.ClienteRepository>()));
     gh.lazySingleton<_i294.BuscarClientes>(
@@ -161,6 +192,8 @@ class _$DatabaseModule extends _i664.DatabaseModule {}
 class _$NetworkModule extends _i851.NetworkModule {}
 
 class _$CoreModule extends _i134.CoreModule {}
+
+class _$RastreamentoModule extends _i237.RastreamentoModule {}
 
 class _$AuthModule extends _i4.AuthModule {}
 

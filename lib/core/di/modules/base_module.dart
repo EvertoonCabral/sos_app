@@ -29,8 +29,7 @@ abstract class BaseModule {
   CriarBase criarBase(BaseRepository repository) => CriarBase(repository);
 
   @lazySingleton
-  ListarBases listarBases(BaseRepository repository) =>
-      ListarBases(repository);
+  ListarBases listarBases(BaseRepository repository) => ListarBases(repository);
 
   @lazySingleton
   DefinirBasePrincipal definirBasePrincipal(BaseRepository repository) =>

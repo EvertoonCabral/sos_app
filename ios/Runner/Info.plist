@@ -45,5 +45,17 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- GPS / Localização -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Precisamos de acesso à sua localização para rastrear o deslocamento durante os atendimentos.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Precisamos de acesso contínuo à sua localização para rastrear o percurso mesmo com o app em segundo plano.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Precisamos de acesso contínuo à sua localização para rastrear o percurso mesmo com o app em segundo plano.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>fetch</string>
+	</array>
 </dict>
 </plist>

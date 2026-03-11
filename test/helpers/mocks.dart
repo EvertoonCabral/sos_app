@@ -7,6 +7,11 @@ import 'package:sos_app/core/network/network_info.dart';
 import 'package:sos_app/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:sos_app/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:sos_app/features/auth/domain/repositories/auth_repository.dart';
+import 'package:sos_app/features/rastreamento/data/datasources/rastreamento_local_datasource.dart';
+import 'package:sos_app/features/rastreamento/domain/repositories/rastreamento_repository.dart';
+import 'package:sos_app/features/rastreamento/domain/usecases/calcular_valor_real.dart';
+import 'package:sos_app/features/rastreamento/domain/usecases/obter_percurso.dart';
+import 'package:sos_app/features/rastreamento/domain/usecases/registrar_ponto.dart';
 
 // --- Core Mocks ---
 class MockNetworkInfo extends Mock implements NetworkInfo {}
@@ -23,3 +28,16 @@ class MockAuthRepository extends Mock implements AuthRepository {}
 class MockAuthRemoteDatasource extends Mock implements AuthRemoteDatasource {}
 
 class MockAuthLocalDatasource extends Mock implements AuthLocalDatasource {}
+
+// --- Rastreamento Mocks ---
+class MockRastreamentoRepository extends Mock
+    implements RastreamentoRepository {}
+
+class MockRastreamentoLocalDatasource extends Mock
+    implements RastreamentoLocalDatasource {}
+
+class MockRegistrarPonto extends Mock implements RegistrarPonto {}
+
+class MockObterPercurso extends Mock implements ObterPercurso {}
+
+class MockCalcularValorReal extends Mock implements CalcularValorReal {}

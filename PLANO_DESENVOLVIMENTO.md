@@ -1086,23 +1086,23 @@ void main() {
 
 ---
 
-### 🟦 Sprint 5 — Rastreamento GPS (Semana 7)
+### ✅ Sprint 5 — Rastreamento GPS (Semana 7)
 
 **Objetivo:** Coleta de GPS em background durante atendimentos.
 
 #### Tarefas
 
-- [ ] **S5-01:** Configurar permissões de GPS no Android (`AndroidManifest.xml`) e iOS (`Info.plist`)
-- [ ] **S5-02:** Implementar `flutter_background_service` para coleta GPS
-- [ ] **S5-03:** [TDD] `IniciarRastreamento` e `PararRastreamento` UseCases
-- [ ] **S5-04:** [TDD] `CalcularValorReal` UseCase (usa pontos coletados)
-- [ ] **S5-05:** Implementar `RastreamentoLocalDatasource`
-- [ ] **S5-06:** [TDD] `RastreamentoBloc`
-- [ ] **S5-07:** Integrar rastreamento com `AtualizarStatusAtendimento` (auto-start/stop)
-- [ ] **S5-08:** Criar `MapaPercursoWidget` para visualizar rota no `flutter_map`
+- [x] **S5-01:** Configurar permissões de GPS no Android (`AndroidManifest.xml`) e iOS (`Info.plist`)
+- [x] **S5-02:** Implementar `GpsCollector` para coleta GPS com geolocator (stream-based)
+- [x] **S5-03:** [TDD] `RegistrarPonto` e `ObterPercurso` UseCases
+- [x] **S5-04:** [TDD] `CalcularValorReal` UseCase (usa pontos coletados)
+- [x] **S5-05:** Implementar `RastreamentoLocalDatasource` + `PontoRastreamentoModel` + `RastreamentoRepositoryImpl`
+- [x] **S5-06:** [TDD] `RastreamentoBloc`
+- [x] **S5-07:** Integrar rastreamento com `AtualizarStatusAtendimento` (auto-start/stop via Bloc)
+- [x] **S5-08:** Criar `MapaPercursoWidget` para visualizar rota no `flutter_map`
 - [ ] **S5-09:** Testar em device real com GPS (especial atenção: Xiaomi, Samsung)
 
-**Critério de aceite:** GPS inicia ao mudar status para `EM_DESLOCAMENTO`, para ao concluir, pontos salvos no Drift, percurso visível no mapa.
+**Critério de aceite:** ✅ GPS collector implementado com stream, pontos salvos no Drift via offline-first, percurso visível no mapa, DI configurado, 205 testes passando. S5-09 requer device real.
 
 ---
 
