@@ -74,9 +74,14 @@ class DetalheAtendimentoPage extends StatelessWidget {
           Navigator.of(context).pop(state.atendimento);
         }
         if (state is AtendimentoErro) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.mensagem)),
-          );
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                content: Text(state.mensagem),
+                backgroundColor: Colors.red,
+              ),
+            );
         }
       },
       child: Scaffold(

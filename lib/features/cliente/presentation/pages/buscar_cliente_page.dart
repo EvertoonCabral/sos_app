@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/widgets/empty_state_widget.dart';
+import '../../../../core/widgets/error_state_widget.dart';
 import '../../domain/entities/cliente.dart';
 import '../bloc/cliente_bloc.dart';
 import '../bloc/cliente_event.dart';
@@ -98,17 +100,16 @@ class _BuscarClientePageState extends State<BuscarClientePage> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (state is ClienteErro) {
-                  return Center(
-                    child: Text(
-                      state.mensagem,
-                      style: const TextStyle(color: Colors.red),
-                    ),
+                  return ErrorStateWidget(
+                    mensagem: state.mensagem,
+                    onRetry: () => _onSearch(_searchController.text),
                   );
                 }
                 if (state is ClienteListaCarregada) {
                   if (state.clientes.isEmpty) {
-                    return const Center(
-                      child: Text('Nenhum cliente encontrado.'),
+                    return const EmptyStateWidget(
+                      mensagem: 'Nenhum cliente encontrado.',
+                      icon: Icons.people_outline,
                     );
                   }
                   return ListView.builder(

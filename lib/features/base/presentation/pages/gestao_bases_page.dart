@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/widgets/empty_state_widget.dart';
+import '../../../../core/widgets/error_state_widget.dart';
 import '../bloc/base_bloc.dart';
 import '../bloc/base_event.dart';
 import '../bloc/base_state.dart';
@@ -36,17 +38,17 @@ class _GestaoBasesPageState extends State<GestaoBasesPage> {
             return const Center(child: CircularProgressIndicator());
           }
           if (state is BaseErro) {
-            return Center(
-              child: Text(
-                state.mensagem,
-                style: const TextStyle(color: Colors.red),
-              ),
+            return ErrorStateWidget(
+              mensagem: state.mensagem,
+              onRetry: () =>
+                  context.read<BaseBloc>().add(const ListarBasesEvent()),
             );
           }
           if (state is BaseListaCarregada) {
             if (state.bases.isEmpty) {
-              return const Center(
-                child: Text('Nenhuma base cadastrada.'),
+              return const EmptyStateWidget(
+                mensagem: 'Nenhuma base cadastrada.',
+                icon: Icons.warehouse_outlined,
               );
             }
             return ListView.builder(

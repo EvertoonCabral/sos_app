@@ -29,11 +29,39 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        release {
+            // Para build de produção, crie o arquivo key.properties na raiz do projeto:
+            //   storeFile=caminho/para/keystore.jks
+            //   storePassword=suaSenha
+            //   keyAlias=seuAlias
+            //   keyPassword=suaSenhaKey
+            def keystorePropertiesFile = rootProject.file("key.properties")
+            if (keystorePropertiesFile.exists()) {
+                def keystoreProperties = new Properties()
+                keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+                storeFile = file(keystoreProperties['storeFile'])
+                storePassword = keystoreProperties['storePassword']
+                keyAlias = keystoreProperties['keyAlias']
+                keyPassword = keystoreProperties['keyPassword']
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.debug
+            def keystorePropertiesFile = rootProject.file("key.properties")
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.release
+            } else {
+                // Fallback para debug (desenvolvimento local)
+                signingConfig = signingConfigs.debug
+            }
+
+            // ProGuard / R8
+            minifyEnabled = true
+            shrinkResources = true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }

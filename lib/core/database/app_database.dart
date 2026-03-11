@@ -55,6 +55,9 @@ class Bases extends Table {
 // --------------------------------------------------------------------------
 // Tabela: atendimentos
 // --------------------------------------------------------------------------
+@TableIndex(name: 'idx_atendimentos_status', columns: {#status})
+@TableIndex(name: 'idx_atendimentos_cliente', columns: {#clienteId})
+@TableIndex(name: 'idx_atendimentos_criado', columns: {#criadoEm})
 class Atendimentos extends Table {
   TextColumn get id => text()();
   TextColumn get clienteId => text().references(Clientes, #id)();
@@ -95,6 +98,8 @@ class Atendimentos extends Table {
 // --------------------------------------------------------------------------
 // Tabela: pontos_rastreamento
 // --------------------------------------------------------------------------
+@TableIndex(name: 'idx_pontos_atendimento', columns: {#atendimentoId})
+@TableIndex(name: 'idx_pontos_synced', columns: {#synced})
 class PontosRastreamento extends Table {
   TextColumn get id => text()();
   TextColumn get atendimentoId => text().references(Atendimentos, #id)();
@@ -113,6 +118,7 @@ class PontosRastreamento extends Table {
 // Tabela: sync_queue
 // --------------------------------------------------------------------------
 @DataClassName('SyncQueueEntry')
+@TableIndex(name: 'idx_sync_proxima_tentativa', columns: {#proximaTentativaEm})
 class SyncQueueTable extends Table {
   TextColumn get id => text()();
   TextColumn get entidade => text()();
@@ -158,7 +164,40 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onUpgrade: (migrator, from, to) async {
+          // v1 → v2: adicionar índices de performance
+          if (from < 2) {
+            await migrator.createIndex(
+              Index('idx_atendimentos_status',
+                  'CREATE INDEX idx_atendimentos_status ON atendimentos (status)'),
+            );
+            await migrator.createIndex(
+              Index('idx_atendimentos_cliente',
+                  'CREATE INDEX idx_atendimentos_cliente ON atendimentos (cliente_id)'),
+            );
+            await migrator.createIndex(
+              Index('idx_atendimentos_criado',
+                  'CREATE INDEX idx_atendimentos_criado ON atendimentos (criado_em)'),
+            );
+            await migrator.createIndex(
+              Index('idx_pontos_atendimento',
+                  'CREATE INDEX idx_pontos_atendimento ON pontos_rastreamento (atendimento_id)'),
+            );
+            await migrator.createIndex(
+              Index('idx_pontos_synced',
+                  'CREATE INDEX idx_pontos_synced ON pontos_rastreamento (synced)'),
+            );
+            await migrator.createIndex(
+              Index('idx_sync_proxima_tentativa',
+                  'CREATE INDEX idx_sync_proxima_tentativa ON sync_queue (proxima_tentativa_em)'),
+            );
+          }
+        },
+      );
 
   static QueryExecutor _openConnection() {
     return driftDatabase(name: 'guincho_app_db');

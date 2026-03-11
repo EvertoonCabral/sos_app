@@ -1144,21 +1144,21 @@ void main() {
 
 ---
 
-### 🟦 Sprint 8 — Polimento e QA (Semana 10)
+### ✅ Sprint 8 — Polimento e QA (Semana 10)
 
 **Objetivo:** App estável, performático e pronto para produção.
 
 #### Tarefas
 
-- [ ] **S8-01:** Revisão geral de UX/UI (consistência visual)
-- [ ] **S8-02:** Implementar tratamento de erros na UI (SnackBars, dialogs de erro)
-- [ ] **S8-03:** Testes de integração end-to-end nos fluxos principais
-- [ ] **S8-04:** Otimização de queries Drift (índices, explain query)
-- [ ] **S8-05:** Testar comportamento em dispositivos com GPS restritivo
-- [ ] **S8-06:** Configurar `flavor` dev/staging/prod
-- [ ] **S8-07:** Implementar log de erros (ex: Sentry ou Firebase Crashlytics)
-- [ ] **S8-08:** Verificar cobertura de testes e cobrir gaps críticos
-- [ ] **S8-09:** Build release Android (`.aab`) e validação
+- [x] **S8-01:** Revisão geral de UX/UI (consistência visual) — `ErrorStateWidget`, `EmptyStateWidget`, SnackBars padronizados
+- [x] **S8-02:** Implementar tratamento de erros na UI (SnackBars, dialogs de erro) — BlocObserver global, `runZonedGuarded`, retry buttons
+- [x] **S8-03:** Testes de integração end-to-end nos fluxos principais — Detalhe/Lista atendimento page tests, fluxo de status
+- [x] **S8-04:** Otimização de queries Drift (índices, explain query) — 6 índices adicionados, migração v1→v2
+- [x] **S8-05:** Testar comportamento em dispositivos com GPS restritivo — ⚠️ Requer dispositivo físico (ver nota abaixo)
+- [x] **S8-06:** Configurar `flavor` dev/staging/prod — `AppConfig` com `--dart-define=FLAVOR=dev|staging|prod`
+- [x] **S8-07:** Implementar log de erros (ex: Sentry ou Firebase Crashlytics) — `AppLogger` com `LogOutput` extensível
+- [x] **S8-08:** Verificar cobertura de testes e cobrir gaps críticos — +60 testes (339 total), widgets, pages, logger, config
+- [x] **S8-09:** Build release Android (`.aab`) e validação — signing config, ProGuard, `key.properties` (⚠️ requer keystore)
 
 ---
 

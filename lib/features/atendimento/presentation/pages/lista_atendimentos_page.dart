@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../../../core/geo/geo_service.dart';
+import '../../../../core/widgets/empty_state_widget.dart';
+import '../../../../core/widgets/error_state_widget.dart';
 import '../../../base/domain/entities/base.dart';
 import '../../../base/domain/usecases/listar_bases.dart';
 import '../../../cliente/domain/entities/cliente.dart';
@@ -69,15 +71,16 @@ class _ListaAtendimentosPageState extends State<ListaAtendimentosPage> {
             return const Center(child: CircularProgressIndicator());
           }
           if (state is AtendimentoErro) {
-            return Center(
-              child: Text(state.mensagem,
-                  style: const TextStyle(color: Colors.red)),
+            return ErrorStateWidget(
+              mensagem: state.mensagem,
+              onRetry: _carregar,
             );
           }
           if (state is AtendimentoListaCarregada) {
             if (state.atendimentos.isEmpty) {
-              return const Center(
-                child: Text('Nenhum atendimento encontrado.'),
+              return const EmptyStateWidget(
+                mensagem: 'Nenhum atendimento encontrado.',
+                icon: Icons.local_shipping_outlined,
               );
             }
             return ListView.builder(

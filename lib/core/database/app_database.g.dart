@@ -3453,6 +3453,18 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $PontosRastreamentoTable(this);
   late final $SyncQueueTableTable syncQueueTable = $SyncQueueTableTable(this);
   late final $GeocodingCacheTable geocodingCache = $GeocodingCacheTable(this);
+  late final Index idxAtendimentosStatus = Index('idx_atendimentos_status',
+      'CREATE INDEX idx_atendimentos_status ON atendimentos (status)');
+  late final Index idxAtendimentosCliente = Index('idx_atendimentos_cliente',
+      'CREATE INDEX idx_atendimentos_cliente ON atendimentos (cliente_id)');
+  late final Index idxAtendimentosCriado = Index('idx_atendimentos_criado',
+      'CREATE INDEX idx_atendimentos_criado ON atendimentos (criado_em)');
+  late final Index idxPontosAtendimento = Index('idx_pontos_atendimento',
+      'CREATE INDEX idx_pontos_atendimento ON pontos_rastreamento (atendimento_id)');
+  late final Index idxPontosSynced = Index('idx_pontos_synced',
+      'CREATE INDEX idx_pontos_synced ON pontos_rastreamento (synced)');
+  late final Index idxSyncProximaTentativa = Index('idx_sync_proxima_tentativa',
+      'CREATE INDEX idx_sync_proxima_tentativa ON sync_queue (proxima_tentativa_em)');
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3464,7 +3476,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         atendimentos,
         pontosRastreamento,
         syncQueueTable,
-        geocodingCache
+        geocodingCache,
+        idxAtendimentosStatus,
+        idxAtendimentosCliente,
+        idxAtendimentosCriado,
+        idxPontosAtendimento,
+        idxPontosSynced,
+        idxSyncProximaTentativa
       ];
 }
 
