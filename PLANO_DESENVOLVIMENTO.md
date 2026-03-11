@@ -1062,27 +1062,27 @@ void main() {
 
 ---
 
-### 🟦 Sprint 4 — Atendimento (Semana 5-6)
+### 🟦 Sprint 4 — Atendimento (Semana 5-6) ✅
 
 **Objetivo:** Criação, listagem e gestão completa de atendimentos.
 
 #### Tarefas
 
-- [ ] **S4-01:** [TDD] `CriarAtendimento` UseCase (com cálculo de distância estimada nos 4 pontos: saída→coleta→entrega→retorno)
-- [ ] **S4-02:** [TDD] `CalcularValorEstimado` UseCase (inclui trecho de retorno obrigatoriamente)
-- [ ] **S4-03:** [TDD] `AtualizarStatusAtendimento` UseCase (com validação de transições: rascunho→emDeslocamento→emColeta→emEntrega→retornando→concluido)
-- [ ] **S4-04:** [TDD] `ListarAtendimentos` UseCase (com filtros)
-- [ ] **S4-05:** Implementar `AtendimentoLocalDatasource`
-- [ ] **S4-06:** Implementar `AtendimentoRemoteDatasource`
-- [ ] **S4-07:** [TDD] `AtendimentoRepositoryImpl`
-- [ ] **S4-08:** [TDD] `AtendimentoBloc` (todos os eventos, incluindo transição para `retornando`)
-- [ ] **S4-09:** Criar `ListaAtendimentosPage` com filtro por status
-- [ ] **S4-10:** Criar `NovoAtendimentoPage` com os 4 campos de localização — Local de Retorno pré-preenchido com Ponto de Saída e editável
-- [ ] **S4-11:** Criar `DetalheAtendimentoPage` com stepper de 5 etapas (incluindo Retornando)
-- [ ] **S4-12:** Criar `ValorSelectorWidget` (fixo vs por km)
-- [ ] **S4-13:** Criar `StatusStepperWidget` com as etapas: Deslocamento → Coleta → Entrega → Retorno → Concluído
+- [x] **S4-01:** [TDD] `CriarAtendimento` UseCase (com cálculo de distância estimada nos 4 pontos: saída→coleta→entrega→retorno)
+- [x] **S4-02:** [TDD] `CalcularValorEstimado` UseCase (inclui trecho de retorno obrigatoriamente)
+- [x] **S4-03:** [TDD] `AtualizarStatusAtendimento` UseCase (com validação de transições: rascunho→emDeslocamento→emColeta→emEntrega→retornando→concluido)
+- [x] **S4-04:** [TDD] `ListarAtendimentos` UseCase (com filtros)
+- [x] **S4-05:** Implementar `AtendimentoLocalDatasource`
+- [x] **S4-06:** Implementar `AtendimentoRemoteDatasource`
+- [x] **S4-07:** [TDD] `AtendimentoRepositoryImpl`
+- [x] **S4-08:** [TDD] `AtendimentoBloc` (todos os eventos, incluindo transição para `retornando`)
+- [x] **S4-09:** Criar `ListaAtendimentosPage` com filtro por status
+- [x] **S4-10:** Criar `NovoAtendimentoPage` com os 4 campos de localização — Local de Retorno pré-preenchido com Ponto de Saída e editável
+- [x] **S4-11:** Criar `DetalheAtendimentoPage` com stepper de 5 etapas (incluindo Retornando)
+- [x] **S4-12:** Criar `ValorSelectorWidget` (fixo vs por km)
+- [x] **S4-13:** Criar `StatusStepperWidget` com as etapas: Deslocamento → Coleta → Entrega → Retorno → Concluído
 
-**Critério de aceite:** Atendimento criado offline com 4 locais (retorno pré-preenchido com saída), valor calculado com trecho de retorno, status avança por todas as 5 etapas incluindo `RETORNANDO`.
+**Critério de aceite:** ✅ Atendimento criado offline com 4 locais (retorno pré-preenchido com saída), valor calculado com trecho de retorno, status avança por todas as 5 etapas incluindo `RETORNANDO`. 206 testes passando. DI configurado para todas as features. Navegação integrada no HomePage.
 
 ---
 
@@ -1328,5 +1328,5 @@ import '../bloc/atendimento_state.dart';
 
 ---
 
-> **Última atualização:** Sprint 0 concluída — Setup e Infraestrutura
-> **Próxima revisão:** Ao iniciar Sprint 1
+> **Última atualização:** Sprint 4 concluída — Atendimento completo com DI e navegação
+> **Próxima revisão:** Ao iniciar Sprint 5

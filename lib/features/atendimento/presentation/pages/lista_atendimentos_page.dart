@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 
+import '../../../../core/geo/geo_service.dart';
+import '../../../base/domain/entities/base.dart';
+import '../../../base/domain/usecases/listar_bases.dart';
+import '../../../cliente/domain/entities/cliente.dart';
+import '../../../cliente/domain/usecases/buscar_clientes.dart';
 import '../../domain/entities/atendimento.dart';
 import '../../domain/entities/atendimento_enums.dart';
 import '../bloc/atendimento_bloc.dart';
 import '../bloc/atendimento_event.dart';
 import '../bloc/atendimento_state.dart';
+import 'detalhe_atendimento_page.dart';
+import 'novo_atendimento_page.dart';
 
 class ListaAtendimentosPage extends StatefulWidget {
   const ListaAtendimentosPage({super.key});
@@ -76,7 +84,10 @@ class _ListaAtendimentosPageState extends State<ListaAtendimentosPage> {
               itemCount: state.atendimentos.length,
               itemBuilder: (context, index) {
                 final at = state.atendimentos[index];
-                return _AtendimentoTile(atendimento: at);
+                return _AtendimentoTile(
+                  atendimento: at,
+                  onTap: () => _abrirDetalhe(context, at),
+                );
               },
             );
           }
@@ -85,12 +96,79 @@ class _ListaAtendimentosPageState extends State<ListaAtendimentosPage> {
       ),
       floatingActionButton: FloatingActionButton(
         key: const Key('novoAtendimentoFab'),
-        onPressed: () {
-          // Navegar para NovoAtendimentoPage
-        },
+        onPressed: () => _iniciarNovoAtendimento(context),
         child: const Icon(Icons.add),
       ),
     );
+  }
+
+  Future<void> _iniciarNovoAtendimento(BuildContext context) async {
+    // 1. Selecionar cliente primeiro
+    final cliente = await _selecionarCliente(context);
+    if (cliente == null || !mounted) return;
+
+    // 2. Carregar bases disponíveis
+    final listarBases = GetIt.I<ListarBases>();
+    final bases = await listarBases();
+    final basePrincipal = bases.cast<Base?>().firstWhere(
+          (b) => b!.isPrincipal,
+          orElse: () => null,
+        );
+
+    if (!mounted) return;
+
+    // 3. Obter usuário logado (simplificado — ID do auth state)
+    // TODO: obter do AuthBloc quando disponível
+    const usuarioId = 'usuario-logado';
+    const valorPorKmDefault = 5.0;
+
+    final resultado = await Navigator.of(context).push<Atendimento>(
+      MaterialPageRoute(
+        builder: (_) => BlocProvider.value(
+          value: context.read<AtendimentoBloc>(),
+          child: NovoAtendimentoPage(
+            clienteId: cliente.id,
+            usuarioId: usuarioId,
+            valorPorKmDefault: valorPorKmDefault,
+            geoService: GetIt.I<GeoService>(),
+            basesDisponiveis: bases,
+            basePrincipal: basePrincipal,
+          ),
+        ),
+      ),
+    );
+
+    if (resultado != null && mounted) {
+      _carregar();
+    }
+  }
+
+  Future<Cliente?> _selecionarCliente(BuildContext context) async {
+    final buscarClientes = GetIt.I<BuscarClientes>();
+    final clientes = await buscarClientes('');
+
+    if (!mounted) return null;
+
+    return showModalBottomSheet<Cliente>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => _SelecionarClienteSheet(clientes: clientes),
+    );
+  }
+
+  void _abrirDetalhe(BuildContext context, Atendimento atendimento) async {
+    final resultado = await Navigator.of(context).push<Atendimento>(
+      MaterialPageRoute(
+        builder: (_) => BlocProvider.value(
+          value: context.read<AtendimentoBloc>(),
+          child: DetalheAtendimentoPage(atendimento: atendimento),
+        ),
+      ),
+    );
+
+    if (resultado != null && mounted) {
+      _carregar();
+    }
   }
 
   String _statusLabel(AtendimentoStatus s) {
@@ -113,10 +191,63 @@ class _ListaAtendimentosPageState extends State<ListaAtendimentosPage> {
   }
 }
 
+class _SelecionarClienteSheet extends StatelessWidget {
+  const _SelecionarClienteSheet({required this.clientes});
+
+  final List<Cliente> clientes;
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.6,
+      minChildSize: 0.3,
+      maxChildSize: 0.9,
+      expand: false,
+      builder: (_, controller) {
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Selecionar Cliente',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: clientes.isEmpty
+                  ? const Center(child: Text('Nenhum cliente cadastrado.'))
+                  : ListView.builder(
+                      controller: controller,
+                      itemCount: clientes.length,
+                      itemBuilder: (_, i) {
+                        final c = clientes[i];
+                        return ListTile(
+                          leading: const CircleAvatar(
+                            child: Icon(Icons.person),
+                          ),
+                          title: Text(c.nome),
+                          subtitle: Text(c.telefone),
+                          onTap: () => Navigator.of(context).pop(c),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
 class _AtendimentoTile extends StatelessWidget {
-  const _AtendimentoTile({required this.atendimento});
+  const _AtendimentoTile({
+    required this.atendimento,
+    this.onTap,
+  });
 
   final Atendimento atendimento;
+  final VoidCallback? onTap;
 
   Color _statusColor() {
     switch (atendimento.status) {
@@ -183,6 +314,7 @@ class _AtendimentoTile extends StatelessWidget {
           ),
           backgroundColor: _statusColor(),
         ),
+        onTap: onTap,
       ),
     );
   }
