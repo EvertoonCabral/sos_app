@@ -1106,21 +1106,21 @@ void main() {
 
 ---
 
-### 🟦 Sprint 6 — Sincronização (Semana 8)
+### ✅ Sprint 6 — Sincronização (Semana 8)
 
 **Objetivo:** Sync queue robusto e confiável.
 
 #### Tarefas
 
-- [ ] **S6-01:** Implementar `SyncManager` completo com backoff exponencial
-- [ ] **S6-02:** [TDD] `SyncManager` (todos os cenários: sucesso, falha, retry, exaustão)
-- [ ] **S6-03:** Integrar `SyncManager` com `connectivity_plus` (trigger automático)
-- [ ] **S6-04:** Criar `SyncStatusWidget` (indicador global de sync)
-- [ ] **S6-05:** Implementar sincronização de `PontoRastreamento` em batch
-- [ ] **S6-06:** Testar cenário: offline → criar atendimentos → ligar rede → verificar sync
-- [ ] **S6-07:** Implementar resolução de conflitos last-write-wins
+- [x] **S6-01:** Implementar `SyncManager` completo com backoff exponencial
+- [x] **S6-02:** [TDD] `SyncManager` (todos os cenários: sucesso, falha, retry, exaustão)
+- [x] **S6-03:** Integrar `SyncManager` com `connectivity_plus` (trigger automático)
+- [x] **S6-04:** Criar `SyncStatusWidget` (indicador global de sync)
+- [x] **S6-05:** Implementar sincronização de `PontoRastreamento` em batch
+- [x] **S6-06:** Testar cenário: offline → criar atendimentos → ligar rede → verificar sync
+- [x] **S6-07:** Implementar resolução de conflitos last-write-wins
 
-**Critério de aceite:** Atendimentos criados offline sincronizados corretamente ao reconectar. Indicador visual funcionando.
+**Critério de aceite:** ✅ SyncManager com backoff exponencial, monitoramento de conectividade, dispatch por entidade, SyncStatusWidget com StreamBuilder, SyncQueueDatasource estendido com 6 métodos, DI configurado, 233 testes passando. S6-06 coberto por testes unitários (cenário real requer device).
 
 ---
 

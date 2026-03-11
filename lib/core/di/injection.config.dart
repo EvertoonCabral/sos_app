@@ -63,6 +63,7 @@ import '../geo/gps_collector.dart' as _i513;
 import '../network/http_client.dart' as _i1069;
 import '../network/network_info.dart' as _i932;
 import '../network/network_info_impl.dart' as _i865;
+import '../sync/sync_manager.dart' as _i417;
 import '../sync/sync_queue_datasource.dart' as _i145;
 import '../utils/distance_calculator.dart' as _i11;
 import 'modules/atendimento_module.dart' as _i460;
@@ -157,6 +158,11 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i789.BaseRepository>(() => baseModule.baseRepository(
           gh<_i221.BaseLocalDatasource>(),
           gh<_i145.SyncQueueDatasource>(),
+        ));
+    gh.lazySingleton<_i417.SyncManager>(() => coreModule.syncManager(
+          gh<_i145.SyncQueueDatasource>(),
+          gh<_i932.NetworkInfo>(),
+          gh<_i361.Dio>(),
         ));
     gh.lazySingleton<_i228.CalcularValorReal>(
         () => rastreamentoModule.calcularValorReal(
