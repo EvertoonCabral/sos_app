@@ -1124,23 +1124,23 @@ void main() {
 
 ---
 
-### 🟦 Sprint 7 — Dashboard e Relatórios (Semana 9)
+### ✅ Sprint 7 — Dashboard e Relatórios (Semana 9)
 
 **Objetivo:** Dashboard com métricas de produtividade.
 
 #### Tarefas
 
-- [ ] **S7-01:** [TDD] `ObterResumoPeriodo` UseCase (queries Drift — km operacional e km cobrado separados)
-- [ ] **S7-02:** [TDD] `ObterKmPorCliente` UseCase
-- [ ] **S7-03:** [TDD] `ObterTempoPorEtapa` UseCase (análise de tempo médio em cada status)
-- [ ] **S7-04:** [TDD] `DashboardCubit`
-- [ ] **S7-05:** Criar `DashboardPage` com cards de métricas (km operacional, km cobrado, receita, atendimentos)
-- [ ] **S7-06:** Criar seletor de período (dia/semana/mês/custom)
-- [ ] **S7-07:** Criar gráfico de atendimentos por período
-- [ ] **S7-08:** Criar ranking de clientes por KM/atendimentos
-- [ ] **S7-09:** Tela de detalhe do percurso com mapa (percurso completo incluindo retorno)
+- [x] **S7-01:** [TDD] `ObterResumoPeriodo` UseCase (queries Drift — km operacional e km cobrado separados)
+- [x] **S7-02:** [TDD] `ObterKmPorCliente` UseCase
+- [x] **S7-03:** [TDD] `ObterTempoPorEtapa` UseCase (análise de tempo médio em cada status)
+- [x] **S7-04:** [TDD] `DashboardCubit`
+- [x] **S7-05:** Criar `DashboardPage` com cards de métricas (km operacional, km cobrado, receita, atendimentos)
+- [x] **S7-06:** Criar seletor de período (dia/semana/mês/custom)
+- [x] **S7-07:** Criar gráfico de atendimentos por período
+- [x] **S7-08:** Criar ranking de clientes por KM/atendimentos
+- [x] **S7-09:** Tela de detalhe do percurso com mapa (percurso completo incluindo retorno)
 
-**Critério de aceite:** Dashboard exibe métricas corretas a partir do banco local. Filtros funcionando.
+**Critério de aceite:** ✅ Dashboard completo com métricas de KM operacional/cobrado, receita, contagem por status, gráfico de barras por dia, ranking de clientes, tempo médio por etapa, seletor de período (hoje/semana/mês/custom), tela de detalhe do percurso com mapa, DI configurado, 279 testes passando.
 
 ---
 

@@ -47,6 +47,16 @@ import '../../features/cliente/domain/repositories/cliente_repository.dart'
 import '../../features/cliente/domain/usecases/atualizar_cliente.dart' as _i427;
 import '../../features/cliente/domain/usecases/buscar_clientes.dart' as _i294;
 import '../../features/cliente/domain/usecases/criar_cliente.dart' as _i829;
+import '../../features/dashboard/data/datasources/dashboard_local_datasource.dart'
+    as _i806;
+import '../../features/dashboard/domain/repositories/dashboard_repository.dart'
+    as _i665;
+import '../../features/dashboard/domain/usecases/obter_km_por_cliente.dart'
+    as _i70;
+import '../../features/dashboard/domain/usecases/obter_resumo_periodo.dart'
+    as _i496;
+import '../../features/dashboard/domain/usecases/obter_tempo_por_etapa.dart'
+    as _i268;
 import '../../features/rastreamento/data/datasources/rastreamento_local_datasource.dart'
     as _i556;
 import '../../features/rastreamento/domain/repositories/rastreamento_repository.dart'
@@ -71,6 +81,7 @@ import 'modules/auth_module.dart' as _i4;
 import 'modules/base_module.dart' as _i878;
 import 'modules/cliente_module.dart' as _i763;
 import 'modules/core_module.dart' as _i134;
+import 'modules/dashboard_module.dart' as _i1018;
 import 'modules/database_module.dart' as _i664;
 import 'modules/network_module.dart' as _i851;
 import 'modules/rastreamento_module.dart' as _i237;
@@ -94,6 +105,7 @@ extension GetItInjectableX on _i174.GetIt {
     final atendimentoModule = _$AtendimentoModule();
     final baseModule = _$BaseModule();
     final clienteModule = _$ClienteModule();
+    final dashboardModule = _$DashboardModule();
     gh.singleton<_i982.AppDatabase>(() => databaseModule.appDatabase);
     gh.singleton<_i361.Dio>(() => networkModule.dio);
     gh.singleton<_i895.Connectivity>(() => networkModule.connectivity);
@@ -119,6 +131,8 @@ extension GetItInjectableX on _i174.GetIt {
         () => coreModule.syncQueueDatasource(gh<_i982.AppDatabase>()));
     gh.lazySingleton<_i556.RastreamentoLocalDatasource>(() => rastreamentoModule
         .rastreamentoLocalDatasource(gh<_i982.AppDatabase>()));
+    gh.lazySingleton<_i806.DashboardLocalDatasource>(() =>
+        dashboardModule.dashboardLocalDatasource(gh<_i982.AppDatabase>()));
     gh.singleton<_i932.NetworkInfo>(
         () => _i865.NetworkInfoImpl(gh<_i895.Connectivity>()));
     gh.lazySingleton<_i787.AuthRepository>(() => authModule.authRepository(
@@ -131,10 +145,18 @@ extension GetItInjectableX on _i174.GetIt {
               gh<_i802.AtendimentoLocalDatasource>(),
               gh<_i145.SyncQueueDatasource>(),
             ));
+    gh.lazySingleton<_i665.DashboardRepository>(() => dashboardModule
+        .dashboardRepository(gh<_i806.DashboardLocalDatasource>()));
     gh.lazySingleton<_i446.AutenticarUsuario>(
         () => authModule.autenticarUsuario(gh<_i787.AuthRepository>()));
     gh.lazySingleton<_i209.ObterUsuarioLogado>(
         () => authModule.obterUsuarioLogado(gh<_i787.AuthRepository>()));
+    gh.lazySingleton<_i496.ObterResumoPeriodo>(() =>
+        dashboardModule.obterResumoPeriodo(gh<_i665.DashboardRepository>()));
+    gh.lazySingleton<_i70.ObterKmPorCliente>(() =>
+        dashboardModule.obterKmPorCliente(gh<_i665.DashboardRepository>()));
+    gh.lazySingleton<_i268.ObterTempoPorEtapa>(() =>
+        dashboardModule.obterTempoPorEtapa(gh<_i665.DashboardRepository>()));
     gh.lazySingleton<_i22.RastreamentoRepository>(
         () => rastreamentoModule.rastreamentoRepository(
               gh<_i556.RastreamentoLocalDatasource>(),
@@ -208,3 +230,5 @@ class _$AtendimentoModule extends _i460.AtendimentoModule {}
 class _$BaseModule extends _i878.BaseModule {}
 
 class _$ClienteModule extends _i763.ClienteModule {}
+
+class _$DashboardModule extends _i1018.DashboardModule {}

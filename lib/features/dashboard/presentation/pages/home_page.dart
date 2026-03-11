@@ -20,6 +20,12 @@ import '../../../cliente/domain/usecases/buscar_clientes.dart';
 import '../../../cliente/domain/usecases/criar_cliente.dart';
 import '../../../cliente/presentation/bloc/cliente_bloc.dart';
 import '../../../cliente/presentation/pages/buscar_cliente_page.dart';
+import '../../domain/repositories/dashboard_repository.dart';
+import '../../domain/usecases/obter_km_por_cliente.dart';
+import '../../domain/usecases/obter_resumo_periodo.dart';
+import '../../domain/usecases/obter_tempo_por_etapa.dart';
+import '../cubit/dashboard_cubit.dart';
+import 'dashboard_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -53,6 +59,14 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             _MenuCard(
+              key: const Key('menuDashboard'),
+              icon: Icons.dashboard,
+              title: 'Dashboard',
+              subtitle: 'Métricas e relatórios',
+              onTap: () => _abrirDashboard(context),
+            ),
+            const SizedBox(height: 12),
+            _MenuCard(
               key: const Key('menuAtendimentos'),
               icon: Icons.local_shipping,
               title: 'Atendimentos',
@@ -79,6 +93,20 @@ class HomePage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _abrirDashboard(BuildContext context) {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => BlocProvider(
+        create: (_) => DashboardCubit(
+          obterResumoPeriodo: GetIt.I<ObterResumoPeriodo>(),
+          obterKmPorCliente: GetIt.I<ObterKmPorCliente>(),
+          obterTempoPorEtapa: GetIt.I<ObterTempoPorEtapa>(),
+          dashboardRepository: GetIt.I<DashboardRepository>(),
+        ),
+        child: const DashboardPage(),
+      ),
+    ));
   }
 
   void _abrirAtendimentos(BuildContext context) {
