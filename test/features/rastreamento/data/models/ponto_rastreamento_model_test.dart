@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 
 import 'package:sos_app/features/rastreamento/data/models/ponto_rastreamento_model.dart';
 import 'package:sos_app/features/rastreamento/domain/entities/ponto_rastreamento.dart';

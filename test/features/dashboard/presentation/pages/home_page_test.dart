@@ -15,19 +15,19 @@ class MockAuthBloc extends MockBloc<AuthEvent, AuthState> implements AuthBloc {}
 void main() {
   late MockAuthBloc mockAuthBloc;
 
-  const tUsuario = Usuario(
+  final tUsuario = Usuario(
     id: 'u-1',
     nome: 'João Operador',
     telefone: '+5511999990000',
     email: 'joao@test.com',
     role: UsuarioRole.operador,
     valorPorKmDefault: 5.0,
-    criadoEm: null,
+    criadoEm: DateTime(2025),
   );
 
   setUp(() {
     mockAuthBloc = MockAuthBloc();
-    when(() => mockAuthBloc.state).thenReturn(const AuthAutenticado(tUsuario));
+    when(() => mockAuthBloc.state).thenReturn(AuthAutenticado(tUsuario));
   });
 
   Widget buildPage() {

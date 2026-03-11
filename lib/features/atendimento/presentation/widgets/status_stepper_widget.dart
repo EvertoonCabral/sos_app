@@ -28,27 +28,21 @@ class StatusStepperWidget extends StatelessWidget {
     AtendimentoStatus.concluido: 'Concluído',
   };
 
-  static const _icons = {
-    AtendimentoStatus.emDeslocamento: Icons.directions_car,
-    AtendimentoStatus.emColeta: Icons.local_shipping,
-    AtendimentoStatus.emEntrega: Icons.delivery_dining,
-    AtendimentoStatus.retornando: Icons.home_outlined,
-    AtendimentoStatus.concluido: Icons.check_circle,
-  };
-
   int get _currentStepIndex {
     if (statusAtual == AtendimentoStatus.rascunho ||
-        statusAtual == AtendimentoStatus.cancelado) return -1;
+        statusAtual == AtendimentoStatus.cancelado) {
+      return -1;
+    }
     return _etapas.indexOf(statusAtual);
   }
 
   @override
   Widget build(BuildContext context) {
     if (statusAtual == AtendimentoStatus.cancelado) {
-      return Center(
+      return const Center(
         child: Chip(
-          avatar: const Icon(Icons.cancel, color: Colors.white),
-          label: const Text('Cancelado', style: TextStyle(color: Colors.white)),
+          avatar: Icon(Icons.cancel, color: Colors.white),
+          label: Text('Cancelado', style: TextStyle(color: Colors.white)),
           backgroundColor: Colors.red,
         ),
       );

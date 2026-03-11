@@ -27,8 +27,8 @@ class GpsCollector {
 
     final locationSettings = AndroidSettings(
       accuracy: LocationAccuracy.high,
-      distanceFilter: AppConstants.gpsMinDistance.toInt(),
-      intervalDuration: AppConstants.gpsInterval,
+      distanceFilter: gpsMinDistance.toInt(),
+      intervalDuration: gpsInterval,
       foregroundNotificationConfig: const ForegroundNotificationConfig(
         notificationTitle: 'SOS App - Rastreamento',
         notificationText: 'Coletando GPS em background',
@@ -40,7 +40,7 @@ class GpsCollector {
       locationSettings: locationSettings,
     ).listen(
       (position) {
-        if (position.accuracy > AppConstants.gpsMinAccuracy) return;
+        if (position.accuracy > gpsMinAccuracy) return;
 
         final ponto = PontoRastreamento(
           id: _uuid.v4(),

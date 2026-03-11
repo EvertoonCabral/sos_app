@@ -58,7 +58,7 @@ void main() {
       atualizarStatusAtendimento: mockAtualizarStatus,
     );
 
-    registerFallbackValue(CriarAtendimentoParams(
+    registerFallbackValue(const CriarAtendimentoParams(
       id: 'any',
       clienteId: 'c1',
       usuarioId: 'u1',
@@ -112,7 +112,7 @@ void main() {
         when(() => mockCriar(any())).thenAnswer((_) async => atendimentoFake);
         return bloc;
       },
-      act: (b) => b.add(CriarAtendimentoEvent(
+      act: (b) => b.add(const CriarAtendimentoEvent(
         id: 'at-1',
         clienteId: 'c1',
         usuarioId: 'u1',
@@ -136,7 +136,7 @@ void main() {
             .thenThrow(const ValidationFailure(message: 'Erro'));
         return bloc;
       },
-      act: (b) => b.add(CriarAtendimentoEvent(
+      act: (b) => b.add(const CriarAtendimentoEvent(
         id: 'at-1',
         clienteId: '',
         usuarioId: 'u1',

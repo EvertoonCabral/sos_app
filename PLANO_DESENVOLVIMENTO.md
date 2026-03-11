@@ -1160,6 +1160,8 @@ void main() {
 - [x] **S8-08:** Verificar cobertura de testes e cobrir gaps críticos — +60 testes (339 total), widgets, pages, logger, config
 - [x] **S8-09:** Build release Android (`.aab`) e validação — signing config, ProGuard, `key.properties` (⚠️ requer keystore)
 
+**Critério de aceite:** ✅ `dart analyze` — 0 issues. 345 testes passando. UX padronizada com `ErrorStateWidget`/`EmptyStateWidget`/retry buttons. Erro global via `runZonedGuarded` + `AppBlocObserver` + `AppLogger`. 6 índices Drift (migração v1→v2). Flavors dev/staging/prod via `--dart-define`. Build release com ProGuard/R8 e signing config preparado. ⚠️ S8-05 (GPS em device restritivo) e build `.aab` real requerem ambiente de produção.
+
 ---
 
 ## 13. Schema do Banco de Dados Local (Drift)
@@ -1328,5 +1330,5 @@ import '../bloc/atendimento_state.dart';
 
 ---
 
-> **Última atualização:** Sprint 4 concluída — Atendimento completo com DI e navegação
-> **Próxima revisão:** Ao iniciar Sprint 5
+> **Última atualização:** Sprint 8 concluída — Polimento e QA (345 testes, 0 issues no `dart analyze`)
+> **Status:** Todas as 9 sprints concluídas ✅

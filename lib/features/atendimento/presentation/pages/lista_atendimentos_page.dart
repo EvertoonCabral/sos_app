@@ -107,6 +107,7 @@ class _ListaAtendimentosPageState extends State<ListaAtendimentosPage> {
 
   Future<void> _iniciarNovoAtendimento(BuildContext context) async {
     // 1. Selecionar cliente primeiro
+    final bloc = context.read<AtendimentoBloc>();
     final cliente = await _selecionarCliente(context);
     if (cliente == null || !mounted) return;
 
@@ -125,10 +126,11 @@ class _ListaAtendimentosPageState extends State<ListaAtendimentosPage> {
     const usuarioId = 'usuario-logado';
     const valorPorKmDefault = 5.0;
 
+    // ignore: use_build_context_synchronously
     final resultado = await Navigator.of(context).push<Atendimento>(
       MaterialPageRoute(
         builder: (_) => BlocProvider.value(
-          value: context.read<AtendimentoBloc>(),
+          value: bloc,
           child: NovoAtendimentoPage(
             clienteId: cliente.id,
             usuarioId: usuarioId,
@@ -146,14 +148,15 @@ class _ListaAtendimentosPageState extends State<ListaAtendimentosPage> {
     }
   }
 
-  Future<Cliente?> _selecionarCliente(BuildContext context) async {
+  Future<Cliente?> _selecionarCliente(BuildContext ctx) async {
     final buscarClientes = GetIt.I<BuscarClientes>();
     final clientes = await buscarClientes('');
 
     if (!mounted) return null;
 
     return showModalBottomSheet<Cliente>(
-      context: context,
+      // ignore: use_build_context_synchronously
+      context: ctx,
       isScrollControlled: true,
       builder: (ctx) => _SelecionarClienteSheet(clientes: clientes),
     );
