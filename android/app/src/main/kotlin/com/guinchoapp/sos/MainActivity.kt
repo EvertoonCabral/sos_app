@@ -1,4 +1,4 @@
-package com.example.sos_app
+package com.guinchoapp.sos
 
 import io.flutter.embedding.android.FlutterActivity
 

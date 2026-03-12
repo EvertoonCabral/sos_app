@@ -14,15 +14,15 @@ App Flutter offline-first para gestão de atendimentos de guincho com rastreamen
 
 ## Funcionalidades
 
-| Feature | Descrição |
-|---------|-----------|
-| **Autenticação** | Login com token JWT via API REST |
-| **Clientes** | CRUD offline-first com busca |
-| **Bases/Garagens** | Gestão de pontos de saída com base principal |
-| **Atendimentos** | Ciclo completo: rascunho → deslocamento → coleta → entrega → retorno → concluído |
-| **Rastreamento GPS** | Coleta em background a cada 30s/100m com stream |
-| **Sincronização** | Queue com backoff exponencial e monitoramento de conectividade |
-| **Dashboard** | Métricas (KM operacional/cobrado, receita), gráficos, ranking de clientes, tempo por etapa |
+| Feature              | Descrição                                                                                  |
+| -------------------- | ------------------------------------------------------------------------------------------ |
+| **Autenticação**     | Login com token JWT via API REST                                                           |
+| **Clientes**         | CRUD offline-first com busca                                                               |
+| **Bases/Garagens**   | Gestão de pontos de saída com base principal                                               |
+| **Atendimentos**     | Ciclo completo: rascunho → deslocamento → coleta → entrega → retorno → concluído           |
+| **Rastreamento GPS** | Coleta em background a cada 30s/100m com stream                                            |
+| **Sincronização**    | Queue com backoff exponencial e monitoramento de conectividade                             |
+| **Dashboard**        | Métricas (KM operacional/cobrado, receita), gráficos, ranking de clientes, tempo por etapa |
 
 ## Estrutura do Projeto
 
@@ -78,11 +78,11 @@ flutter build appbundle --dart-define=FLAVOR=prod
 
 ## Flavors
 
-| Flavor | API Base URL | App Name |
-|--------|-------------|----------|
-| `dev` | `http://10.0.2.2:3000` | GuinchoApp [DEV] |
+| Flavor    | API Base URL                            | App Name         |
+| --------- | --------------------------------------- | ---------------- |
+| `dev`     | `http://10.0.2.2:3000`                  | GuinchoApp [DEV] |
 | `staging` | `https://staging-api.guinchoapp.com.br` | GuinchoApp [STG] |
-| `prod` | `https://api.guinchoapp.com.br` | GuinchoApp |
+| `prod`    | `https://api.guinchoapp.com.br`         | GuinchoApp       |
 
 ## Banco de Dados
 
@@ -104,28 +104,28 @@ flutter build appbundle --dart-define=FLAVOR=prod
 
 ## Stack
 
-| Camada | Tecnologia |
-|--------|-----------|
-| Estado | flutter_bloc ^8.1.6 |
-| Banco | drift ^2.20.0 |
-| DI | get_it ^8.0.2 + injectable ^2.4.4 |
-| HTTP | dio ^5.7.0 |
-| GPS | geolocator ^13.0.2 |
-| Mapas | flutter_map ^7.0.2 |
+| Camada | Tecnologia                        |
+| ------ | --------------------------------- |
+| Estado | flutter_bloc ^8.1.6               |
+| Banco  | drift ^2.20.0                     |
+| DI     | get_it ^8.0.2 + injectable ^2.4.4 |
+| HTTP   | dio ^5.7.0                        |
+| GPS    | geolocator ^13.0.2                |
+| Mapas  | flutter_map ^7.0.2                |
 | Testes | mocktail ^1.0.4, bloc_test ^9.1.7 |
 
 ## Progresso
 
-| Sprint | Status | Testes |
-|--------|--------|--------|
-| 0 — Setup Inicial | ✅ | — |
-| 1 — Autenticação | ✅ | — |
-| 2 — Base + Cliente | ✅ | — |
-| 3 — Geocoding + LocalSelector | ✅ | — |
-| 4 — Atendimento | ✅ | 206 |
-| 5 — Rastreamento GPS | ✅ | 205 |
-| 6 — Sincronização | ✅ | 233 |
-| 7 — Dashboard | ✅ | 279 |
-| 8 — Polimento e QA | ✅ | 345 |
+| Sprint                        | Status | Testes |
+| ----------------------------- | ------ | ------ |
+| 0 — Setup Inicial             | ✅     | —      |
+| 1 — Autenticação              | ✅     | —      |
+| 2 — Base + Cliente            | ✅     | —      |
+| 3 — Geocoding + LocalSelector | ✅     | —      |
+| 4 — Atendimento               | ✅     | 206    |
+| 5 — Rastreamento GPS          | ✅     | 205    |
+| 6 — Sincronização             | ✅     | 233    |
+| 7 — Dashboard                 | ✅     | 279    |
+| 8 — Polimento e QA            | ✅     | 345    |
 
 Consulte [PLANO_DESENVOLVIMENTO.md](PLANO_DESENVOLVIMENTO.md) para detalhes completos.
