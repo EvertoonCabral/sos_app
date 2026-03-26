@@ -49,7 +49,7 @@ void main() {
 
   group('AtualizarStatusAtendimento', () {
     test('rascunho → emDeslocamento deve preencher iniciadoEm', () async {
-      when(() => mockRepository.atualizar(any())).thenAnswer(
+      when(() => mockRepository.atualizarStatus(any())).thenAnswer(
         (inv) async => inv.positionalArguments[0] as Atendimento,
       );
 
@@ -63,7 +63,7 @@ void main() {
     });
 
     test('emDeslocamento → emColeta deve preencher chegadaColetaEm', () async {
-      when(() => mockRepository.atualizar(any())).thenAnswer(
+      when(() => mockRepository.atualizarStatus(any())).thenAnswer(
         (inv) async => inv.positionalArguments[0] as Atendimento,
       );
 
@@ -77,7 +77,7 @@ void main() {
     });
 
     test('emColeta → emEntrega deve preencher chegadaEntregaEm', () async {
-      when(() => mockRepository.atualizar(any())).thenAnswer(
+      when(() => mockRepository.atualizarStatus(any())).thenAnswer(
         (inv) async => inv.positionalArguments[0] as Atendimento,
       );
 
@@ -91,7 +91,7 @@ void main() {
     });
 
     test('emEntrega → retornando deve preencher inicioRetornoEm', () async {
-      when(() => mockRepository.atualizar(any())).thenAnswer(
+      when(() => mockRepository.atualizarStatus(any())).thenAnswer(
         (inv) async => inv.positionalArguments[0] as Atendimento,
       );
 
@@ -105,7 +105,7 @@ void main() {
     });
 
     test('retornando → concluido deve preencher concluidoEm', () async {
-      when(() => mockRepository.atualizar(any())).thenAnswer(
+      when(() => mockRepository.atualizarStatus(any())).thenAnswer(
         (inv) async => inv.positionalArguments[0] as Atendimento,
       );
 
@@ -119,7 +119,7 @@ void main() {
     });
 
     test('rascunho → cancelado deve ser permitido', () async {
-      when(() => mockRepository.atualizar(any())).thenAnswer(
+      when(() => mockRepository.atualizarStatus(any())).thenAnswer(
         (inv) async => inv.positionalArguments[0] as Atendimento,
       );
 

@@ -47,6 +47,6 @@ class AtualizarStatusAtendimento {
         break;
     }
 
-    return _repository.atualizar(atualizado);
+    return _repository.atualizarStatus(atualizado);
   }
 }

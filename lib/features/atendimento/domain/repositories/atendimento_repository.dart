@@ -6,4 +6,5 @@ abstract class AtendimentoRepository {
   Future<List<Atendimento>> listar({AtendimentoStatus? status});
   Future<Atendimento> obterPorId(String id);
   Future<Atendimento> atualizar(Atendimento atendimento);
+  Future<Atendimento> atualizarStatus(Atendimento atendimento);
 }

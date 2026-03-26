@@ -197,6 +197,55 @@ void main() {
             .called(1);
       });
 
+      test('sincroniza atendimento status_update com PATCH', () async {
+        final statusPayload = {
+          'id': 'at-1',
+          'novoStatus': 'EmDeslocamento',
+          'atualizadoEm': '2024-01-01T12:00:00.000',
+          'distanciaRealKm': null,
+          'valorCobrado': null,
+        };
+        final entry = makeEntry(
+          id: 'sq-2b',
+          entidade: 'atendimento',
+          operacao: 'status_update',
+          payload: statusPayload,
+        );
+
+        when(() => mockNetworkInfo.isConnected).thenAnswer((_) async => true);
+        when(() => mockSyncQueue.obterPendentes(maxRetries: syncMaxRetries))
+            .thenAnswer((_) async => [entry]);
+        when(() => mockDio.patch(
+              '/atendimentos/at-1/status',
+              data: {
+                'novoStatus': 'EmDeslocamento',
+                'atualizadoEm': '2024-01-01T12:00:00.000',
+                'distanciaRealKm': null,
+                'valorCobrado': null,
+              },
+            )).thenAnswer((_) async => Response(
+              requestOptions: RequestOptions(path: '/atendimentos/at-1/status'),
+              statusCode: 200,
+            ));
+        when(() => mockSyncQueue.remover('sq-2b')).thenAnswer((_) async {});
+        when(() => mockSyncQueue.contarPendentes()).thenAnswer((_) async => 0);
+        when(() => mockSyncQueue.contarComErro(maxRetries: syncMaxRetries))
+            .thenAnswer((_) async => 0);
+
+        final result = await syncManager.processar();
+
+        expect(result, 1);
+        verify(() => mockDio.patch(
+              '/atendimentos/at-1/status',
+              data: {
+                'novoStatus': 'EmDeslocamento',
+                'atualizadoEm': '2024-01-01T12:00:00.000',
+                'distanciaRealKm': null,
+                'valorCobrado': null,
+              },
+            )).called(1);
+      });
+
       test('sincroniza ponto_rastreamento create com sucesso', () async {
         final entry = makeEntry(
           id: 'sq-3',

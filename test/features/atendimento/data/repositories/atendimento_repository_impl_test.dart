@@ -124,5 +124,31 @@ void main() {
       expect(result.id, 'at-1');
       verify(() => mockLocal.obterPorId('at-1')).called(1);
     });
+
+    test('atualizarStatus grava no local e adiciona status_update à sync queue',
+        () async {
+      when(() => mockLocal.atualizar(any())).thenAnswer((_) async {});
+      when(() => mockSyncQueue.adicionar(
+            entidade: any(named: 'entidade'),
+            operacao: any(named: 'operacao'),
+            payload: any(named: 'payload'),
+          )).thenAnswer((_) async {});
+
+      final updated = atendimento.copyWith(
+        status: AtendimentoStatus.emDeslocamento,
+        atualizadoEm: DateTime(2024, 1, 1, 12),
+        iniciadoEm: DateTime(2024, 1, 1, 12),
+      );
+
+      final result = await repository.atualizarStatus(updated);
+
+      expect(result.status, AtendimentoStatus.emDeslocamento);
+      verify(() => mockLocal.atualizar(any())).called(1);
+      verify(() => mockSyncQueue.adicionar(
+            entidade: 'atendimento',
+            operacao: 'status_update',
+            payload: any(named: 'payload'),
+          )).called(1);
+    });
   });
 }

@@ -52,4 +52,22 @@ class AtendimentoRepositoryImpl implements AtendimentoRepository {
     );
     return atendimento;
   }
+
+  @override
+  Future<Atendimento> atualizarStatus(Atendimento atendimento) async {
+    final model = AtendimentoModel.fromEntity(atendimento);
+    await localDatasource.atualizar(model);
+    await syncQueue.adicionar(
+      entidade: 'atendimento',
+      operacao: 'status_update',
+      payload: {
+        'id': atendimento.id,
+        'novoStatus': atendimento.status.toApiValue(),
+        'atualizadoEm': atendimento.atualizadoEm.toIso8601String(),
+        'distanciaRealKm': atendimento.distanciaRealKm,
+        'valorCobrado': atendimento.valorCobrado,
+      },
+    );
+    return atendimento;
+  }
 }

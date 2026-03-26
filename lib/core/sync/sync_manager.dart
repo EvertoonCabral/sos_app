@@ -161,6 +161,17 @@ class SyncManager {
         await dio.post('/atendimentos', data: payload);
       case 'update':
         await dio.put('/atendimentos/${payload['id']}', data: payload);
+      case 'status_update':
+        final atendimentoId = payload['id'] as String;
+        await dio.patch(
+          '/atendimentos/$atendimentoId/status',
+          data: {
+            'novoStatus': payload['novoStatus'],
+            'atualizadoEm': payload['atualizadoEm'],
+            'distanciaRealKm': payload['distanciaRealKm'],
+            'valorCobrado': payload['valorCobrado'],
+          },
+        );
       default:
         throw UnsupportedError(
             'Operação desconhecida para atendimento: $operacao');
