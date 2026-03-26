@@ -30,14 +30,34 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
         );
       }
 
-      return AuthLoginResponse(
-        token: data['token'] as String,
-        usuario: UsuarioModel.fromJson(data['usuario'] as Map<String, dynamic>),
-      );
+      return AuthLoginResponse.fromJson(data);
     } on DioException catch (e) {
       throw ServerException(
         message:
             e.response?.data?['message']?.toString() ?? 'Erro ao autenticar',
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
+
+  @override
+  Future<AuthLoginResponse> refresh() async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>('/auth/refresh');
+
+      final data = response.data;
+      if (data == null) {
+        throw const ServerException(
+          message: 'Resposta vazia do servidor',
+          statusCode: 500,
+        );
+      }
+
+      return AuthLoginResponse.fromJson(data);
+    } on DioException catch (e) {
+      throw ServerException(
+        message: e.response?.data?['message']?.toString() ??
+            'Erro ao renovar autenticação',
         statusCode: e.response?.statusCode,
       );
     }
@@ -56,7 +76,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
         );
       }
 
-      return UsuarioModel.fromJson(data);
+      return UsuarioModel.fromCurrentUserJson(data);
     } on DioException catch (e) {
       throw ServerException(
         message:

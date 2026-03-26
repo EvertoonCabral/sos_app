@@ -13,14 +13,27 @@ class UsuarioModel {
   });
 
   factory UsuarioModel.fromJson(Map<String, dynamic> json) => UsuarioModel(
-        id: json['id'] as String,
+        id: (json['id'] ?? json['usuarioId']) as String,
         nome: json['nome'] as String,
-        telefone: json['telefone'] as String,
+        telefone: (json['telefone'] as String?) ?? '',
+        email: json['email'] as String,
+        role: json['role'] as String,
+        valorPorKmDefault:
+            ((json['valorPorKmDefault'] as num?) ?? 0).toDouble(),
+        criadoEm:
+            (json['criadoEm'] as String?) ?? DateTime.now().toIso8601String(),
+        sincronizadoEm: json['sincronizadoEm'] as String?,
+      );
+
+  factory UsuarioModel.fromCurrentUserJson(Map<String, dynamic> json) =>
+      UsuarioModel(
+        id: json['usuarioId'] as String,
+        nome: json['nome'] as String,
+        telefone: '',
         email: json['email'] as String,
         role: json['role'] as String,
         valorPorKmDefault: (json['valorPorKmDefault'] as num).toDouble(),
-        criadoEm: json['criadoEm'] as String,
-        sincronizadoEm: json['sincronizadoEm'] as String?,
+        criadoEm: DateTime.now().toIso8601String(),
       );
 
   factory UsuarioModel.fromEntity(Usuario entity) => UsuarioModel(

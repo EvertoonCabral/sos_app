@@ -31,6 +31,8 @@ void main() {
       localDatasource: mockLocal,
       networkInfo: mockNetwork,
     );
+
+    registerFallbackValue(tModel);
   });
 
   const tModel = UsuarioModel(
@@ -57,7 +59,14 @@ void main() {
   const tEmail = 'joao@guincho.com';
   const tSenha = 'senha123';
 
-  const tLoginResponse = AuthLoginResponse(token: tToken, usuario: tModel);
+  final tLoginResponse = AuthLoginResponse(
+    token: tToken,
+    usuarioId: 'user-123',
+    nome: 'João Operador',
+    email: 'joao@guincho.com',
+    role: 'operador',
+    expiresAt: DateTime(2026, 4, 1),
+  );
 
   // ─── autenticar ─────────────────────────────────────────────
 
@@ -67,6 +76,9 @@ void main() {
       when(
         () => mockRemote.login(email: tEmail, senha: tSenha),
       ).thenAnswer((_) async => tLoginResponse);
+      when(
+        () => mockRemote.getUsuarioAtual(),
+      ).thenAnswer((_) async => tModel);
       when(
         () => mockLocal.salvarToken(tToken),
       ).thenAnswer((_) async {});
@@ -82,6 +94,33 @@ void main() {
       expect(result, tEntity);
       verify(() => mockLocal.salvarToken(tToken)).called(1);
       verify(() => mockLocal.salvarUsuario(tModel)).called(1);
+    });
+
+    test('deve salvar usuário parcial quando getUsuarioAtual falha', () async {
+      when(() => mockNetwork.isConnected).thenAnswer((_) async => true);
+      when(
+        () => mockRemote.login(email: tEmail, senha: tSenha),
+      ).thenAnswer((_) async => tLoginResponse);
+      when(
+        () => mockRemote.getUsuarioAtual(),
+      ).thenThrow(
+        const ServerException(message: 'Falha no me', statusCode: 500),
+      );
+      when(
+        () => mockLocal.salvarToken(tToken),
+      ).thenAnswer((_) async {});
+      when(
+        () => mockLocal.salvarUsuario(any()),
+      ).thenAnswer((_) async {});
+
+      final result = await repository.autenticar(
+        email: tEmail,
+        senha: tSenha,
+      );
+
+      expect(result.id, 'user-123');
+      expect(result.nome, 'João Operador');
+      verify(() => mockLocal.salvarUsuario(any())).called(1);
     });
 
     test('deve lançar NetworkFailure quando offline', () async {

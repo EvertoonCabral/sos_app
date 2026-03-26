@@ -33,8 +33,16 @@ class AuthRepositoryImpl implements AuthRepository {
         senha: senha,
       );
       await localDatasource.salvarToken(response.token);
-      await localDatasource.salvarUsuario(response.usuario);
-      return response.usuario.toEntity();
+
+      try {
+        final usuarioAtual = await remoteDatasource.getUsuarioAtual();
+        await localDatasource.salvarUsuario(usuarioAtual);
+        return usuarioAtual.toEntity();
+      } on ServerException {
+        final usuarioParcial = response.toUsuarioModel();
+        await localDatasource.salvarUsuario(usuarioParcial);
+        return usuarioParcial.toEntity();
+      }
     } on ServerException catch (e) {
       throw ServerFailure(message: e.message);
     }

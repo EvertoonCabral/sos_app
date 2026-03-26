@@ -26,7 +26,12 @@ Dio configureDio({
   );
 
   if (!dio.interceptors.any((interceptor) => interceptor is AuthInterceptor)) {
-    dio.interceptors.add(AuthInterceptor(secureStorage));
+    dio.interceptors.add(
+      AuthInterceptor(
+        dio: dio,
+        secureStorage: secureStorage,
+      ),
+    );
   }
 
   if (!dio.interceptors.any((interceptor) => interceptor is RetryInterceptor)) {
@@ -70,10 +75,17 @@ class HttpClient {
 /// Injects Bearer token from secure storage into every request.
 /// If no token is stored (e.g. login endpoint), the request proceeds without it.
 class AuthInterceptor extends Interceptor {
-  AuthInterceptor(this._secureStorage);
+  AuthInterceptor({
+    required Dio dio,
+    required FlutterSecureStorage secureStorage,
+  })  : _dio = dio,
+        _secureStorage = secureStorage;
 
+  final Dio _dio;
   final FlutterSecureStorage _secureStorage;
   static const _tokenKey = 'auth_token';
+  static const _userKey = 'auth_usuario';
+  static Future<String?>? _refreshOperation;
 
   @override
   Future<void> onRequest(
@@ -85,6 +97,85 @@ class AuthInterceptor extends Interceptor {
       options.headers[HttpHeaders.authorizationHeader] = 'Bearer $token';
     }
     handler.next(options);
+  }
+
+  @override
+  Future<void> onError(
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
+    if (!_shouldRefresh(err)) {
+      handler.next(err);
+      return;
+    }
+
+    try {
+      final refreshedToken = await (_refreshOperation ??= _refreshToken());
+      _refreshOperation = null;
+
+      if (refreshedToken == null || refreshedToken.isEmpty) {
+        handler.next(err);
+        return;
+      }
+
+      err.requestOptions.headers[HttpHeaders.authorizationHeader] =
+          'Bearer $refreshedToken';
+      err.requestOptions.extra['authRefreshed'] = true;
+
+      final response = await _dio.fetch(err.requestOptions);
+      handler.resolve(response);
+    } catch (_) {
+      _refreshOperation = null;
+      await _clearSession();
+      handler.next(err);
+    }
+  }
+
+  bool _shouldRefresh(DioException err) {
+    final statusCode = err.response?.statusCode;
+    final path = err.requestOptions.path;
+    return statusCode == 401 &&
+        err.requestOptions.extra['authRefreshed'] != true &&
+        !path.endsWith('/auth/login') &&
+        !path.endsWith('/auth/refresh');
+  }
+
+  Future<String?> _refreshToken() async {
+    final token = await _secureStorage.read(key: _tokenKey);
+    if (token == null || token.isEmpty) {
+      return null;
+    }
+
+    final refreshClient = Dio(
+      BaseOptions(
+        baseUrl: _dio.options.baseUrl,
+        connectTimeout: _dio.options.connectTimeout,
+        receiveTimeout: _dio.options.receiveTimeout,
+        headers: {
+          HttpHeaders.contentTypeHeader: ContentType.json.value,
+          HttpHeaders.acceptHeader: ContentType.json.value,
+          HttpHeaders.authorizationHeader: 'Bearer $token',
+        },
+      ),
+    );
+
+    final response = await refreshClient.post<Map<String, dynamic>>(
+      '/auth/refresh',
+    );
+
+    final data = response.data;
+    final refreshedToken = data?['token'] as String?;
+    if (refreshedToken == null || refreshedToken.isEmpty) {
+      return null;
+    }
+
+    await _secureStorage.write(key: _tokenKey, value: refreshedToken);
+    return refreshedToken;
+  }
+
+  Future<void> _clearSession() async {
+    await _secureStorage.delete(key: _tokenKey);
+    await _secureStorage.delete(key: _userKey);
   }
 }
 
