@@ -11,12 +11,20 @@ import 'package:sos_app/features/atendimento/presentation/bloc/atendimento_bloc.
 import 'package:sos_app/features/atendimento/presentation/bloc/atendimento_event.dart';
 import 'package:sos_app/features/atendimento/presentation/bloc/atendimento_state.dart';
 import 'package:sos_app/features/atendimento/presentation/pages/detalhe_atendimento_page.dart';
+import 'package:sos_app/features/rastreamento/presentation/bloc/rastreamento_bloc.dart';
+import 'package:sos_app/features/rastreamento/presentation/bloc/rastreamento_event.dart';
+import 'package:sos_app/features/rastreamento/presentation/bloc/rastreamento_state.dart';
 
 class MockAtendimentoBloc extends MockBloc<AtendimentoEvent, AtendimentoState>
     implements AtendimentoBloc {}
 
+class MockRastreamentoBloc
+    extends MockBloc<RastreamentoEvent, RastreamentoState>
+    implements RastreamentoBloc {}
+
 void main() {
   late MockAtendimentoBloc mockBloc;
+  late MockRastreamentoBloc mockRastrBloc;
 
   const local = LocalGeo(
     enderecoTexto: 'Rua X, 100',
@@ -41,12 +49,17 @@ void main() {
 
   setUp(() {
     mockBloc = MockAtendimentoBloc();
+    mockRastrBloc = MockRastreamentoBloc();
+    when(() => mockRastrBloc.state).thenReturn(const RastreamentoInicial());
   });
 
   Widget buildPage(Atendimento atendimento) {
     return MaterialApp(
-      home: BlocProvider<AtendimentoBloc>.value(
-        value: mockBloc,
+      home: MultiBlocProvider(
+        providers: [
+          BlocProvider<AtendimentoBloc>.value(value: mockBloc),
+          BlocProvider<RastreamentoBloc>.value(value: mockRastrBloc),
+        ],
         child: DetalheAtendimentoPage(atendimento: atendimento),
       ),
     );
@@ -158,6 +171,82 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Falha ao atualizar status'), findsOneWidget);
+    });
+
+    testWidgets(
+        'deve disparar IniciarRastreamentoEvent no initState ao abrir com emDeslocamento',
+        (tester) async {
+      final atEmDeslocamento = Atendimento(
+        id: 'at-int-001',
+        clienteId: 'c1',
+        usuarioId: 'u1',
+        pontoDeSaida: local,
+        localDeColeta: local,
+        localDeEntrega: local,
+        localDeRetorno: local,
+        distanciaEstimadaKm: 30.0,
+        valorPorKm: 5.0,
+        tipoValor: TipoValor.porKm,
+        status: AtendimentoStatus.emDeslocamento,
+        criadoEm: DateTime(2025),
+        atualizadoEm: DateTime(2025),
+      );
+
+      when(() => mockBloc.state).thenReturn(const AtendimentoInicial());
+      await tester.pumpWidget(buildPage(atEmDeslocamento));
+      await tester.pump(); // allow postFrameCallback
+
+      verify(
+        () => mockRastrBloc.add(
+          const IniciarRastreamentoEvent(atendimentoId: 'at-int-001'),
+        ),
+      ).called(1);
+    });
+
+    testWidgets(
+        'deve disparar IniciarRastreamentoEvent quando status transiciona para emDeslocamento',
+        (tester) async {
+      when(() => mockBloc.state).thenReturn(const AtendimentoInicial());
+      whenListen(
+        mockBloc,
+        Stream.fromIterable([
+          AtendimentoStatusAtualizado(
+            atendimentoBase.copyWith(status: AtendimentoStatus.emDeslocamento),
+          ),
+        ]),
+        initialState: const AtendimentoInicial(),
+      );
+
+      await tester.pumpWidget(buildPage(atendimentoBase));
+      await tester.pumpAndSettle();
+
+      verify(
+        () => mockRastrBloc.add(
+          IniciarRastreamentoEvent(atendimentoId: atendimentoBase.id),
+        ),
+      ).called(1);
+    });
+
+    testWidgets(
+        'deve disparar PararRastreamentoEvent quando status transiciona para concluido',
+        (tester) async {
+      when(() => mockBloc.state).thenReturn(const AtendimentoInicial());
+      whenListen(
+        mockBloc,
+        Stream.fromIterable([
+          AtendimentoStatusAtualizado(
+            atendimentoBase.copyWith(status: AtendimentoStatus.concluido),
+          ),
+        ]),
+        initialState: const AtendimentoInicial(),
+      );
+
+      await tester.pumpWidget(buildPage(atendimentoBase));
+      await tester.pumpAndSettle();
+
+      verify(
+        () => mockRastrBloc.add(const PararRastreamentoEvent()),
+      ).called(1);
     });
   });
 }

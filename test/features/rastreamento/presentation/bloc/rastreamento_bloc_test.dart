@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:sos_app/core/error/failures.dart';
+import 'package:sos_app/core/geo/gps_collector.dart';
 import 'package:sos_app/core/utils/distance_calculator.dart';
 import 'package:sos_app/features/rastreamento/domain/entities/ponto_rastreamento.dart';
 import 'package:sos_app/features/rastreamento/domain/usecases/calcular_valor_real.dart';
@@ -20,12 +21,15 @@ class MockCalcularValorReal extends Mock implements CalcularValorReal {}
 
 class MockDistanceCalculator extends Mock implements DistanceCalculator {}
 
+class MockGpsCollector extends Mock implements GpsCollector {}
+
 void main() {
   late RastreamentoBloc bloc;
   late MockRegistrarPonto mockRegistrar;
   late MockObterPercurso mockObterPercurso;
   late MockCalcularValorReal mockCalcularValorReal;
   late MockDistanceCalculator mockDistanceCalculator;
+  late MockGpsCollector mockGpsCollector;
 
   final ponto = PontoRastreamento(
     id: 'p-1',
@@ -41,12 +45,19 @@ void main() {
     mockObterPercurso = MockObterPercurso();
     mockCalcularValorReal = MockCalcularValorReal();
     mockDistanceCalculator = MockDistanceCalculator();
+    mockGpsCollector = MockGpsCollector();
+
+    when(() => mockGpsCollector.iniciar(any())).thenAnswer((_) async {});
+    when(() => mockGpsCollector.parar()).thenAnswer((_) async {});
+    when(() => mockGpsCollector.pontoStream)
+        .thenAnswer((_) => Stream<PontoRastreamento>.empty());
 
     bloc = RastreamentoBloc(
       registrarPonto: mockRegistrar,
       obterPercurso: mockObterPercurso,
       calcularValorReal: mockCalcularValorReal,
       distanceCalculator: mockDistanceCalculator,
+      gpsCollector: mockGpsCollector,
     );
 
     registerFallbackValue(ponto);
@@ -85,9 +96,9 @@ void main() {
         when(() => mockRegistrar(any())).thenAnswer((_) async {});
         return bloc;
       },
-      act: (b) {
-        // Precisamos iniciar primeiro para definir _atendimentoIdAtivo
+      act: (b) async {
         b.add(const IniciarRastreamentoEvent(atendimentoId: 'at-1'));
+        await Future.delayed(Duration.zero);
         b.add(RegistrarPontoEvent(ponto: ponto));
       },
       expect: () => [
@@ -105,8 +116,9 @@ void main() {
             .thenThrow(const CacheFailure(message: 'Falha ao salvar'));
         return bloc;
       },
-      act: (b) {
+      act: (b) async {
         b.add(const IniciarRastreamentoEvent(atendimentoId: 'at-1'));
+        await Future.delayed(Duration.zero);
         b.add(RegistrarPontoEvent(ponto: ponto));
       },
       expect: () => [

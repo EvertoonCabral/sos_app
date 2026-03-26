@@ -7,6 +7,12 @@ import '../../../atendimento/domain/usecases/criar_atendimento.dart';
 import '../../../atendimento/domain/usecases/listar_atendimentos.dart';
 import '../../../atendimento/presentation/bloc/atendimento_bloc.dart';
 import '../../../atendimento/presentation/pages/lista_atendimentos_page.dart';
+import '../../../rastreamento/domain/usecases/calcular_valor_real.dart';
+import '../../../rastreamento/domain/usecases/obter_percurso.dart';
+import '../../../rastreamento/domain/usecases/registrar_ponto.dart';
+import '../../../rastreamento/presentation/bloc/rastreamento_bloc.dart';
+import '../../../../core/geo/gps_collector.dart';
+import '../../../../core/utils/distance_calculator.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
@@ -111,12 +117,25 @@ class HomePage extends StatelessWidget {
 
   void _abrirAtendimentos(BuildContext context) {
     Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => BlocProvider(
-        create: (_) => AtendimentoBloc(
-          criarAtendimento: GetIt.I<CriarAtendimento>(),
-          listarAtendimentos: GetIt.I<ListarAtendimentos>(),
-          atualizarStatusAtendimento: GetIt.I<AtualizarStatusAtendimento>(),
-        ),
+      builder: (_) => MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            create: (_) => AtendimentoBloc(
+              criarAtendimento: GetIt.I<CriarAtendimento>(),
+              listarAtendimentos: GetIt.I<ListarAtendimentos>(),
+              atualizarStatusAtendimento: GetIt.I<AtualizarStatusAtendimento>(),
+            ),
+          ),
+          BlocProvider(
+            create: (_) => RastreamentoBloc(
+              registrarPonto: GetIt.I<RegistrarPonto>(),
+              obterPercurso: GetIt.I<ObterPercurso>(),
+              calcularValorReal: GetIt.I<CalcularValorReal>(),
+              distanceCalculator: GetIt.I<DistanceCalculator>(),
+              gpsCollector: GetIt.I<GpsCollector>(),
+            ),
+          ),
+        ],
         child: const ListaAtendimentosPage(),
       ),
     ));

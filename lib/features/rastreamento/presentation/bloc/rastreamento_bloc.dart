@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/error/failures.dart';
+import '../../../../core/geo/gps_collector.dart';
 import '../../../../core/utils/distance_calculator.dart';
+import '../../domain/entities/ponto_rastreamento.dart';
 import '../../domain/usecases/calcular_valor_real.dart';
 import '../../domain/usecases/obter_percurso.dart';
 import '../../domain/usecases/registrar_ponto.dart';
@@ -14,10 +18,12 @@ class RastreamentoBloc extends Bloc<RastreamentoEvent, RastreamentoState> {
     required ObterPercurso obterPercurso,
     required CalcularValorReal calcularValorReal,
     required DistanceCalculator distanceCalculator,
+    required GpsCollector gpsCollector,
   })  : _registrarPonto = registrarPonto,
         _obterPercurso = obterPercurso,
         _calcularValorReal = calcularValorReal,
         _distanceCalculator = distanceCalculator,
+        _gpsCollector = gpsCollector,
         super(const RastreamentoInicial()) {
     on<IniciarRastreamentoEvent>(_onIniciar);
     on<PararRastreamentoEvent>(_onParar);
@@ -30,9 +36,11 @@ class RastreamentoBloc extends Bloc<RastreamentoEvent, RastreamentoState> {
   final ObterPercurso _obterPercurso;
   final CalcularValorReal _calcularValorReal;
   final DistanceCalculator _distanceCalculator;
+  final GpsCollector _gpsCollector;
 
   String? _atendimentoIdAtivo;
   int _pontosColetados = 0;
+  StreamSubscription<PontoRastreamento>? _gpsSubscription;
 
   String? get atendimentoIdAtivo => _atendimentoIdAtivo;
 
@@ -40,8 +48,26 @@ class RastreamentoBloc extends Bloc<RastreamentoEvent, RastreamentoState> {
     IniciarRastreamentoEvent event,
     Emitter<RastreamentoState> emit,
   ) async {
+    // Já rastreando este atendimento — não reinicia
+    if (_atendimentoIdAtivo == event.atendimentoId &&
+        _gpsSubscription != null) {
+      return;
+    }
+
+    // Define o atendimento ativo antes do primeiro await,
+    // evitando race condition com RegistrarPontoEvent concorrente.
     _atendimentoIdAtivo = event.atendimentoId;
     _pontosColetados = 0;
+
+    // Cancela rastreamento anterior (caso exista para outro atendimento)
+    await _gpsSubscription?.cancel();
+    await _gpsCollector.parar();
+
+    await _gpsCollector.iniciar(event.atendimentoId);
+    _gpsSubscription = _gpsCollector.pontoStream.listen(
+      (ponto) => add(RegistrarPontoEvent(ponto: ponto)),
+    );
+
     emit(RastreamentoEmAndamento(
       atendimentoId: event.atendimentoId,
       pontosColetados: _pontosColetados,
@@ -52,6 +78,9 @@ class RastreamentoBloc extends Bloc<RastreamentoEvent, RastreamentoState> {
     PararRastreamentoEvent event,
     Emitter<RastreamentoState> emit,
   ) async {
+    await _gpsSubscription?.cancel();
+    _gpsSubscription = null;
+    await _gpsCollector.parar();
     _atendimentoIdAtivo = null;
     _pontosColetados = 0;
     emit(const RastreamentoParado());
@@ -84,6 +113,14 @@ class RastreamentoBloc extends Bloc<RastreamentoEvent, RastreamentoState> {
     } on Failure catch (f) {
       emit(RastreamentoErro(f.message));
     }
+  }
+
+  @override
+  Future<void> close() async {
+    await _gpsSubscription?.cancel();
+    _gpsSubscription = null;
+    await _gpsCollector.parar();
+    return super.close();
   }
 
   Future<void> _onCalcularValorReal(

@@ -16,6 +16,7 @@ import '../bloc/atendimento_event.dart';
 import '../bloc/atendimento_state.dart';
 import 'detalhe_atendimento_page.dart';
 import 'novo_atendimento_page.dart';
+import '../../../rastreamento/presentation/bloc/rastreamento_bloc.dart';
 
 class ListaAtendimentosPage extends StatefulWidget {
   const ListaAtendimentosPage({super.key});
@@ -163,10 +164,15 @@ class _ListaAtendimentosPageState extends State<ListaAtendimentosPage> {
   }
 
   void _abrirDetalhe(BuildContext context, Atendimento atendimento) async {
+    final atndBloc = context.read<AtendimentoBloc>();
+    final rastrBloc = context.read<RastreamentoBloc>();
     final resultado = await Navigator.of(context).push<Atendimento>(
       MaterialPageRoute(
-        builder: (_) => BlocProvider.value(
-          value: context.read<AtendimentoBloc>(),
+        builder: (_) => MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: atndBloc),
+            BlocProvider.value(value: rastrBloc),
+          ],
           child: DetalheAtendimentoPage(atendimento: atendimento),
         ),
       ),

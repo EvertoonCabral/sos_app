@@ -7,9 +7,19 @@ import '../bloc/atendimento_bloc.dart';
 import '../bloc/atendimento_event.dart';
 import '../bloc/atendimento_state.dart';
 import '../widgets/status_stepper_widget.dart';
+import '../../../rastreamento/presentation/bloc/rastreamento_bloc.dart';
+import '../../../rastreamento/presentation/bloc/rastreamento_event.dart';
+
+/// Status que requerem coleta de GPS ativa.
+const _statusComTracking = {
+  AtendimentoStatus.emDeslocamento,
+  AtendimentoStatus.emColeta,
+  AtendimentoStatus.emEntrega,
+  AtendimentoStatus.retornando,
+};
 
 /// Tela de detalhe do atendimento com stepper de 5 etapas.
-class DetalheAtendimentoPage extends StatelessWidget {
+class DetalheAtendimentoPage extends StatefulWidget {
   const DetalheAtendimentoPage({
     super.key,
     required this.atendimento,
@@ -17,6 +27,28 @@ class DetalheAtendimentoPage extends StatelessWidget {
 
   final Atendimento atendimento;
 
+  @override
+  State<DetalheAtendimentoPage> createState() =>
+      _DetalheAtendimentoPageState();
+}
+
+class _DetalheAtendimentoPageState extends State<DetalheAtendimentoPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Retoma o tracking se a tela foi reaberta com o atendimento já em andamento
+    // (ex: app reiniciado durante o percurso).
+    if (_statusComTracking.contains(widget.atendimento.status)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.read<RastreamentoBloc>().add(
+                IniciarRastreamentoEvent(
+                    atendimentoId: widget.atendimento.id),
+              );
+        }
+      });
+    }
+  }
   String _statusLabel(AtendimentoStatus s) {
     switch (s) {
       case AtendimentoStatus.rascunho:
@@ -38,7 +70,7 @@ class DetalheAtendimentoPage extends StatelessWidget {
 
   /// Retorna o próximo status válido (não cancelado) ou null.
   AtendimentoStatus? _proximoStatus() {
-    final permitidos = transicoesValidas[atendimento.status] ?? [];
+    final permitidos = transicoesValidas[widget.atendimento.status] ?? [];
     if (permitidos.isEmpty) return null;
     // Prefere o avanço natural (não cancelado)
     return permitidos.firstWhere(
@@ -71,6 +103,21 @@ class DetalheAtendimentoPage extends StatelessWidget {
     return BlocListener<AtendimentoBloc, AtendimentoState>(
       listener: (context, state) {
         if (state is AtendimentoStatusAtualizado) {
+          final novoStatus = state.atendimento.status;
+          // Inicia coleta GPS ao começar o deslocamento
+          if (novoStatus == AtendimentoStatus.emDeslocamento) {
+            context.read<RastreamentoBloc>().add(
+                  IniciarRastreamentoEvent(
+                      atendimentoId: state.atendimento.id),
+                );
+          }
+          // Encerra coleta GPS ao concluir ou cancelar
+          if (novoStatus == AtendimentoStatus.concluido ||
+              novoStatus == AtendimentoStatus.cancelado) {
+            context
+                .read<RastreamentoBloc>()
+                .add(const PararRastreamentoEvent());
+          }
           Navigator.of(context).pop(state.atendimento);
         }
         if (state is AtendimentoErro) {
@@ -86,7 +133,7 @@ class DetalheAtendimentoPage extends StatelessWidget {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Atendimento #${atendimento.id.substring(0, 8)}'),
+          title: Text('Atendimento #${widget.atendimento.id.substring(0, 8)}'),
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -96,19 +143,19 @@ class DetalheAtendimentoPage extends StatelessWidget {
               // --- Info de locais ---
               _InfoCard(
                 title: 'Ponto de Saída',
-                texto: atendimento.pontoDeSaida.enderecoTexto,
+                texto: widget.atendimento.pontoDeSaida.enderecoTexto,
               ),
               _InfoCard(
                 title: 'Local de Coleta',
-                texto: atendimento.localDeColeta.enderecoTexto,
+                texto: widget.atendimento.localDeColeta.enderecoTexto,
               ),
               _InfoCard(
                 title: 'Local de Entrega',
-                texto: atendimento.localDeEntrega.enderecoTexto,
+                texto: widget.atendimento.localDeEntrega.enderecoTexto,
               ),
               _InfoCard(
                 title: 'Local de Retorno',
-                texto: atendimento.localDeRetorno.enderecoTexto,
+                texto: widget.atendimento.localDeRetorno.enderecoTexto,
               ),
               const SizedBox(height: 8),
 
@@ -122,14 +169,14 @@ class DetalheAtendimentoPage extends StatelessWidget {
                     children: [
                       Text(
                         'Distância Estimada: '
-                        '${atendimento.distanciaEstimadaKm.toStringAsFixed(1)} km',
+                        '${widget.atendimento.distanciaEstimadaKm.toStringAsFixed(1)} km',
                       ),
-                      if (atendimento.valorCobrado != null)
+                      if (widget.atendimento.valorCobrado != null)
                         Text(
-                          'Valor: R\$ ${atendimento.valorCobrado!.toStringAsFixed(2)}',
+                          'Valor: R\$ ${widget.atendimento.valorCobrado!.toStringAsFixed(2)}',
                         ),
                       Text(
-                        'Tipo: ${atendimento.tipoValor == TipoValor.fixo ? "Fixo" : "Por KM"}',
+                        'Tipo: ${widget.atendimento.tipoValor == TipoValor.fixo ? "Fixo" : "Por KM"}',
                       ),
                     ],
                   ),
@@ -139,19 +186,19 @@ class DetalheAtendimentoPage extends StatelessWidget {
 
               // --- Status e observações ---
               Text(
-                'Status: ${_statusLabel(atendimento.status)}',
+                'Status: ${_statusLabel(widget.atendimento.status)}',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
-              if (atendimento.observacoes != null &&
-                  atendimento.observacoes!.isNotEmpty)
+              if (widget.atendimento.observacoes != null &&
+                  widget.atendimento.observacoes!.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
-                  child: Text('Obs: ${atendimento.observacoes}'),
+                  child: Text('Obs: ${widget.atendimento.observacoes}'),
                 ),
               const SizedBox(height: 16),
 
               // --- Stepper ---
-              StatusStepperWidget(statusAtual: atendimento.status),
+              StatusStepperWidget(statusAtual: widget.atendimento.status),
             ],
           ),
         ),
@@ -164,8 +211,8 @@ class DetalheAtendimentoPage extends StatelessWidget {
     final proximo = _proximoStatus();
     if (proximo == null) return null;
 
-    final podeAvancar = atendimento.status != AtendimentoStatus.concluido &&
-        atendimento.status != AtendimentoStatus.cancelado;
+    final podeAvancar = widget.atendimento.status != AtendimentoStatus.concluido &&
+        widget.atendimento.status != AtendimentoStatus.cancelado;
     if (!podeAvancar) return null;
 
     return BlocBuilder<AtendimentoBloc, AtendimentoState>(
@@ -177,7 +224,7 @@ class DetalheAtendimentoPage extends StatelessWidget {
             child: Row(
               children: [
                 // Cancelar
-                if (atendimento.status != AtendimentoStatus.concluido)
+                if (widget.atendimento.status != AtendimentoStatus.concluido)
                   Expanded(
                     child: OutlinedButton(
                       key: const Key('cancelarAtendimentoButton'),
@@ -185,7 +232,7 @@ class DetalheAtendimentoPage extends StatelessWidget {
                           ? null
                           : () => context.read<AtendimentoBloc>().add(
                                 AtualizarStatusEvent(
-                                  atendimento: atendimento,
+                                  atendimento: widget.atendimento,
                                   novoStatus: AtendimentoStatus.cancelado,
                                 ),
                               ),
@@ -202,7 +249,7 @@ class DetalheAtendimentoPage extends StatelessWidget {
                         ? null
                         : () => context.read<AtendimentoBloc>().add(
                               AtualizarStatusEvent(
-                                atendimento: atendimento,
+                                atendimento: widget.atendimento,
                                 novoStatus: proximo,
                               ),
                             ),
