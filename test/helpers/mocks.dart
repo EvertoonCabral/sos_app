@@ -8,6 +8,7 @@ import 'package:sos_app/features/auth/data/datasources/auth_local_datasource.dar
 import 'package:sos_app/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:sos_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:sos_app/features/dashboard/data/datasources/dashboard_local_datasource.dart';
+import 'package:sos_app/features/dashboard/data/datasources/dashboard_remote_datasource.dart';
 import 'package:sos_app/features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'package:sos_app/features/dashboard/domain/usecases/obter_km_por_cliente.dart';
 import 'package:sos_app/features/dashboard/domain/usecases/obter_resumo_periodo.dart';
@@ -52,6 +53,9 @@ class MockDashboardRepository extends Mock implements DashboardRepository {}
 
 class MockDashboardLocalDatasource extends Mock
     implements DashboardLocalDatasource {}
+
+class MockDashboardRemoteDatasource extends Mock
+    implements DashboardRemoteDatasource {}
 
 class MockObterResumoPeriodo extends Mock implements ObterResumoPeriodo {}
 

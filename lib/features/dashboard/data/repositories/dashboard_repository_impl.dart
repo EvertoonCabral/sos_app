@@ -1,19 +1,40 @@
+import '../../../../core/error/exceptions.dart';
+import '../../../../core/network/network_info.dart';
 import '../../domain/entities/resumo_cliente.dart';
 import '../../domain/entities/resumo_periodo.dart';
 import '../../domain/entities/tempo_por_etapa.dart';
 import '../../domain/repositories/dashboard_repository.dart';
 import '../datasources/dashboard_local_datasource.dart';
+import '../datasources/dashboard_remote_datasource.dart';
 
 class DashboardRepositoryImpl implements DashboardRepository {
-  DashboardRepositoryImpl({required this.localDatasource});
+  DashboardRepositoryImpl({
+    required this.localDatasource,
+    required this.remoteDatasource,
+    required this.networkInfo,
+  });
 
   final DashboardLocalDatasource localDatasource;
+  final DashboardRemoteDatasource remoteDatasource;
+  final NetworkInfo networkInfo;
 
   @override
   Future<ResumoPeriodo> obterResumoPeriodo({
     required DateTime inicio,
     required DateTime fim,
   }) async {
+    if (await networkInfo.isConnected) {
+      try {
+        final remote = await remoteDatasource.obterResumoPeriodo(
+          inicio: inicio,
+          fim: fim,
+        );
+        return remote.toEntity();
+      } on ServerException {
+        // fallback local
+      }
+    }
+
     final data = await localDatasource.obterResumoPeriodo(
       inicio: inicio,
       fim: fim,
@@ -34,6 +55,18 @@ class DashboardRepositoryImpl implements DashboardRepository {
     required DateTime inicio,
     required DateTime fim,
   }) async {
+    if (await networkInfo.isConnected) {
+      try {
+        final remote = await remoteDatasource.obterKmPorCliente(
+          inicio: inicio,
+          fim: fim,
+        );
+        return remote.map((item) => item.toEntity()).toList();
+      } on ServerException {
+        // fallback local
+      }
+    }
+
     final data = await localDatasource.obterKmPorCliente(
       inicio: inicio,
       fim: fim,
@@ -54,6 +87,18 @@ class DashboardRepositoryImpl implements DashboardRepository {
     required DateTime inicio,
     required DateTime fim,
   }) async {
+    if (await networkInfo.isConnected) {
+      try {
+        final remote = await remoteDatasource.obterTempoPorEtapa(
+          inicio: inicio,
+          fim: fim,
+        );
+        return remote.toEntity();
+      } on ServerException {
+        // fallback local
+      }
+    }
+
     final data = await localDatasource.obterTempoPorEtapa(
       inicio: inicio,
       fim: fim,
@@ -72,6 +117,22 @@ class DashboardRepositoryImpl implements DashboardRepository {
     required DateTime inicio,
     required DateTime fim,
   }) async {
+    if (await networkInfo.isConnected) {
+      try {
+        final remote = await remoteDatasource.obterAtendimentosPorDia(
+          inicio: inicio,
+          fim: fim,
+        );
+        return {
+          for (final item in remote)
+            DateTime(item.data.year, item.data.month, item.data.day):
+                item.quantidade,
+        };
+      } on ServerException {
+        // fallback local
+      }
+    }
+
     return localDatasource.obterAtendimentosPorDia(
       inicio: inicio,
       fim: fim,

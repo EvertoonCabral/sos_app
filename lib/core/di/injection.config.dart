@@ -51,6 +51,8 @@ import '../../features/cliente/domain/usecases/buscar_clientes.dart' as _i294;
 import '../../features/cliente/domain/usecases/criar_cliente.dart' as _i829;
 import '../../features/dashboard/data/datasources/dashboard_local_datasource.dart'
     as _i806;
+import '../../features/dashboard/data/datasources/dashboard_remote_datasource.dart'
+    as _i817;
 import '../../features/dashboard/domain/repositories/dashboard_repository.dart'
     as _i665;
 import '../../features/dashboard/domain/usecases/obter_km_por_cliente.dart'
@@ -141,14 +143,6 @@ extension GetItInjectableX on _i174.GetIt {
               gh<_i802.AtendimentoLocalDatasource>(),
               gh<_i145.SyncQueueDatasource>(),
             ));
-    gh.lazySingleton<_i665.DashboardRepository>(() => dashboardModule
-        .dashboardRepository(gh<_i806.DashboardLocalDatasource>()));
-    gh.lazySingleton<_i496.ObterResumoPeriodo>(() =>
-        dashboardModule.obterResumoPeriodo(gh<_i665.DashboardRepository>()));
-    gh.lazySingleton<_i70.ObterKmPorCliente>(() =>
-        dashboardModule.obterKmPorCliente(gh<_i665.DashboardRepository>()));
-    gh.lazySingleton<_i268.ObterTempoPorEtapa>(() =>
-        dashboardModule.obterTempoPorEtapa(gh<_i665.DashboardRepository>()));
     gh.lazySingleton<_i22.RastreamentoRepository>(
         () => rastreamentoModule.rastreamentoRepository(
               gh<_i556.RastreamentoLocalDatasource>(),
@@ -185,6 +179,8 @@ extension GetItInjectableX on _i174.GetIt {
         rastreamentoModule.obterPercurso(gh<_i22.RastreamentoRepository>()));
     gh.lazySingleton<_i161.AuthRemoteDatasource>(
         () => authModule.authRemoteDatasource(gh<_i361.Dio>()));
+    gh.lazySingleton<_i817.DashboardRemoteDatasource>(
+        () => dashboardModule.dashboardRemoteDatasource(gh<_i361.Dio>()));
     gh.singleton<_i1069.HttpClient>(() => _i1069.HttpClient(
           gh<_i361.Dio>(),
           gh<_i558.FlutterSecureStorage>(),
@@ -222,10 +218,22 @@ extension GetItInjectableX on _i174.GetIt {
           gh<_i992.AuthLocalDatasource>(),
           gh<_i932.NetworkInfo>(),
         ));
+    gh.lazySingleton<_i665.DashboardRepository>(
+        () => dashboardModule.dashboardRepository(
+              gh<_i806.DashboardLocalDatasource>(),
+              gh<_i817.DashboardRemoteDatasource>(),
+              gh<_i932.NetworkInfo>(),
+            ));
     gh.lazySingleton<_i446.AutenticarUsuario>(
         () => authModule.autenticarUsuario(gh<_i787.AuthRepository>()));
     gh.lazySingleton<_i209.ObterUsuarioLogado>(
         () => authModule.obterUsuarioLogado(gh<_i787.AuthRepository>()));
+    gh.lazySingleton<_i496.ObterResumoPeriodo>(() =>
+        dashboardModule.obterResumoPeriodo(gh<_i665.DashboardRepository>()));
+    gh.lazySingleton<_i70.ObterKmPorCliente>(() =>
+        dashboardModule.obterKmPorCliente(gh<_i665.DashboardRepository>()));
+    gh.lazySingleton<_i268.ObterTempoPorEtapa>(() =>
+        dashboardModule.obterTempoPorEtapa(gh<_i665.DashboardRepository>()));
     return this;
   }
 }
