@@ -47,5 +47,5 @@ abstract class CoreModule {
   DistanceCalculator get distanceCalculator => DistanceCalculator();
 
   @lazySingleton
-  GeoService get geoService => GeoServiceImpl();
+  GeoService geoService(Dio dio) => GeoServiceImpl(dio);
 }

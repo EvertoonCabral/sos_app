@@ -30,9 +30,8 @@ class _ValorSelectorWidgetState extends State<ValorSelectorWidget> {
   void initState() {
     super.initState();
     _fixoController = TextEditingController(
-      text: widget.valorFixo != null
-          ? widget.valorFixo!.toStringAsFixed(2)
-          : '',
+      text:
+          widget.valorFixo != null ? widget.valorFixo!.toStringAsFixed(2) : '',
     );
   }
 
@@ -43,9 +42,8 @@ class _ValorSelectorWidgetState extends State<ValorSelectorWidget> {
     // and the field is currently empty (avoids overwriting user typing).
     if (widget.tipoValor == TipoValor.fixo &&
         oldWidget.tipoValor != TipoValor.fixo) {
-      _fixoController.text = widget.valorFixo != null
-          ? widget.valorFixo!.toStringAsFixed(2)
-          : '';
+      _fixoController.text =
+          widget.valorFixo != null ? widget.valorFixo!.toStringAsFixed(2) : '';
     }
   }
 

@@ -1,20 +1,56 @@
+import 'package:dio/dio.dart';
 import 'package:geocoding/geocoding.dart' as geocoding;
 import 'package:geolocator/geolocator.dart';
 
 import '../entities/local_geo.dart';
 import 'geo_service.dart';
 
-/// Implementação real do [GeoService] usando geolocator + geocoding.
-///
-/// Nota: A integração com Google Places Autocomplete é feita no widget
-/// (flutter_google_places_sdk). Esta classe cuida de geocoding, reverse
-/// geocoding e localização GPS.
+/// Implementação real do [GeoService] usando geolocator + geocoding + Nominatim.
 class GeoServiceImpl implements GeoService {
+  GeoServiceImpl(this._dio);
+
+  final Dio _dio;
+
+  static const _nominatimUrl =
+      'https://nominatim.openstreetmap.org/search';
+
   @override
   Future<List<LocalGeo>> autocompletar(String query) async {
-    // Implementação futura com Google Places Autocomplete API.
-    // No momento, retorna lista vazia; o widget usa flutter_google_places_sdk.
-    return [];
+    try {
+      final response = await _dio.get<List<dynamic>>(
+        _nominatimUrl,
+        queryParameters: {
+          'q': query,
+          'format': 'json',
+          'limit': 5,
+          'addressdetails': 0,
+          'countrycodes': 'br',
+        },
+        options: Options(headers: {
+          'User-Agent': 'SosApp/1.0 (Flutter; Android)',
+          'Accept-Language': 'pt-BR,pt;q=0.9',
+        }),
+      );
+
+      final data = response.data;
+      if (data == null) return [];
+
+      return data
+          .whereType<Map<String, dynamic>>()
+          .map((item) => LocalGeo(
+                enderecoTexto: item['display_name'] as String? ?? '',
+                latitude: double.tryParse(
+                        item['lat']?.toString() ?? '') ??
+                    0.0,
+                longitude: double.tryParse(
+                        item['lon']?.toString() ?? '') ??
+                    0.0,
+              ))
+          .where((l) => l.enderecoTexto.isNotEmpty)
+          .toList();
+    } catch (_) {
+      return [];
+    }
   }
 
   @override

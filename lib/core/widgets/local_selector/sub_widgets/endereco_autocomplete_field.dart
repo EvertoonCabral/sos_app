@@ -108,6 +108,13 @@ class _EnderecoAutocompleteFieldState extends State<EnderecoAutocompleteField> {
                     ),
             ),
             onChanged: _onQueryChanged,
+            onSubmitted: (_) {
+              if (_sugestoes.isNotEmpty) {
+                _selecionarSugestao(_sugestoes.first);
+              } else {
+                _confirmarTexto();
+              }
+            },
           ),
           if (_sugestoes.isNotEmpty)
             ConstrainedBox(
