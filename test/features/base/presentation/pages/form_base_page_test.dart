@@ -186,8 +186,7 @@ void main() {
   // ─── Dispatch de eventos ─────────────────────────────────────
 
   group('Dispatch de eventos', () {
-    testWidgets(
-        'deve disparar CriarBaseEvent com nome e localização ao salvar',
+    testWidgets('deve disparar CriarBaseEvent com nome e localização ao salvar',
         (tester) async {
       const tLocal = LocalGeo(
         enderecoTexto: 'Rua X, 100',
@@ -215,8 +214,7 @@ void main() {
       await tester.tap(find.byKey(const Key('salvarBaseButton')));
       await tester.pump();
 
-      final captured =
-          verify(() => mockBloc.add(captureAny())).captured;
+      final captured = verify(() => mockBloc.add(captureAny())).captured;
       expect(captured.last, isA<CriarBaseEvent>());
 
       final event = captured.last as CriarBaseEvent;
@@ -253,8 +251,7 @@ void main() {
       await tester.tap(find.byKey(const Key('salvarBaseButton')));
       await tester.pump();
 
-      final captured =
-          verify(() => mockBloc.add(captureAny())).captured;
+      final captured = verify(() => mockBloc.add(captureAny())).captured;
       final event = captured.last as CriarBaseEvent;
       expect(event.base.local.complemento, 'Galpão 3');
     });

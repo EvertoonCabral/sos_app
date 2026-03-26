@@ -28,8 +28,7 @@ class DetalheAtendimentoPage extends StatefulWidget {
   final Atendimento atendimento;
 
   @override
-  State<DetalheAtendimentoPage> createState() =>
-      _DetalheAtendimentoPageState();
+  State<DetalheAtendimentoPage> createState() => _DetalheAtendimentoPageState();
 }
 
 class _DetalheAtendimentoPageState extends State<DetalheAtendimentoPage> {
@@ -42,13 +41,13 @@ class _DetalheAtendimentoPageState extends State<DetalheAtendimentoPage> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           context.read<RastreamentoBloc>().add(
-                IniciarRastreamentoEvent(
-                    atendimentoId: widget.atendimento.id),
+                IniciarRastreamentoEvent(atendimentoId: widget.atendimento.id),
               );
         }
       });
     }
   }
+
   String _statusLabel(AtendimentoStatus s) {
     switch (s) {
       case AtendimentoStatus.rascunho:
@@ -107,8 +106,7 @@ class _DetalheAtendimentoPageState extends State<DetalheAtendimentoPage> {
           // Inicia coleta GPS ao começar o deslocamento
           if (novoStatus == AtendimentoStatus.emDeslocamento) {
             context.read<RastreamentoBloc>().add(
-                  IniciarRastreamentoEvent(
-                      atendimentoId: state.atendimento.id),
+                  IniciarRastreamentoEvent(atendimentoId: state.atendimento.id),
                 );
           }
           // Encerra coleta GPS ao concluir ou cancelar
@@ -211,8 +209,9 @@ class _DetalheAtendimentoPageState extends State<DetalheAtendimentoPage> {
     final proximo = _proximoStatus();
     if (proximo == null) return null;
 
-    final podeAvancar = widget.atendimento.status != AtendimentoStatus.concluido &&
-        widget.atendimento.status != AtendimentoStatus.cancelado;
+    final podeAvancar =
+        widget.atendimento.status != AtendimentoStatus.concluido &&
+            widget.atendimento.status != AtendimentoStatus.cancelado;
     if (!podeAvancar) return null;
 
     return BlocBuilder<AtendimentoBloc, AtendimentoState>(
