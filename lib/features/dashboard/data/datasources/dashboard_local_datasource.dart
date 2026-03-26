@@ -48,9 +48,11 @@ class DashboardLocalDatasourceImpl implements DashboardLocalDatasource {
     double receitaTotal = 0;
 
     for (final a in concluidos) {
-      kmOperacional += a.distanciaRealKm ?? 0;
-      kmCobrado += a.distanciaRealKm ?? 0;
-      receitaTotal += a.valorCobrado ?? 0;
+      // Fallback para atendimentos porKm concluídos sem GPS: usa distância estimada
+      final kmReal = a.distanciaRealKm ?? a.distanciaEstimadaKm;
+      kmOperacional += kmReal;
+      kmCobrado += kmReal;
+      receitaTotal += a.valorCobrado ?? (kmReal * a.valorPorKm);
     }
 
     // Contagem por status — usa concluidoEm/criadoEm conforme semântica:

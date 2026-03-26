@@ -161,8 +161,7 @@ void main() {
       );
     });
 
-    test(
-        'concluido porKm usa distanciaEstimada como fallback quando sem GPS',
+    test('concluido porKm usa distanciaEstimada como fallback quando sem GPS',
         () async {
       when(() => mockRepository.atualizarStatus(any())).thenAnswer(
         (inv) async => inv.positionalArguments[0] as Atendimento,
