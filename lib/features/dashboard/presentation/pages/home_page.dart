@@ -26,6 +26,7 @@ import '../../../cliente/domain/usecases/buscar_clientes.dart';
 import '../../../cliente/domain/usecases/criar_cliente.dart';
 import '../../../cliente/presentation/bloc/cliente_bloc.dart';
 import '../../../cliente/presentation/pages/buscar_cliente_page.dart';
+import '../../../sincronizacao/presentation/pages/sincronizacao_page.dart';
 import '../../domain/repositories/dashboard_repository.dart';
 import '../../domain/usecases/obter_km_por_cliente.dart';
 import '../../domain/usecases/obter_resumo_periodo.dart';
@@ -192,6 +193,17 @@ class _HomePageState extends State<HomePage> {
                 onTap: () {
                   Navigator.of(context).pop();
                   _abrirBases(context);
+                },
+              ),
+              ListTile(
+                key: const Key('menuSincronizacao'),
+                leading: const Icon(Icons.sync),
+                title: const Text('Sincronização'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => const SincronizacaoPage(),
+                  ));
                 },
               ),
               const Spacer(),

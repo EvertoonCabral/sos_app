@@ -7,6 +7,7 @@ import 'package:get_it/get_it.dart';
 import 'core/constants/app_config.dart';
 import 'core/di/injection.dart';
 import 'core/routing/auth_gate.dart';
+import 'core/sync/sync_manager.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/app_bloc_observer.dart';
 import 'core/utils/app_logger.dart';
@@ -22,6 +23,9 @@ Future<void> main() async {
   final logger = AppLogger.instance;
   logger.info('App iniciado com flavor: ${AppConfig.instance.flavor.name}',
       tag: 'Main');
+
+  // Ativar sync automático ao reconectar à internet
+  GetIt.I<SyncManager>().iniciarMonitoramento();
 
   Bloc.observer = AppBlocObserver();
 

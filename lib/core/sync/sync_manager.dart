@@ -99,6 +99,29 @@ class SyncManager {
     return SyncStatus.pendente;
   }
 
+  /// Resumo detalhado da fila para a tela de sincronização.
+  Future<Map<String, dynamic>> obterResumo() async {
+    final todos = await syncQueue.obterTodos();
+    final pendentes = todos.where((i) => i.tentativas < syncMaxRetries).length;
+    final comErro = todos.where((i) => i.tentativas >= syncMaxRetries).length;
+    final ultimoPull = await syncCursorDatasource.obterUltimoPull();
+
+    // Contagem por entidade
+    final porEntidade = <String, int>{};
+    for (final item in todos) {
+      porEntidade[item.entidade] = (porEntidade[item.entidade] ?? 0) + 1;
+    }
+
+    return {
+      'total': todos.length,
+      'pendentes': pendentes,
+      'comErro': comErro,
+      'porEntidade': porEntidade,
+      'ultimoPull': ultimoPull,
+      'isProcessing': _isProcessing,
+    };
+  }
+
   /// Processa a fila de sincronização.
   ///
   /// Retorna o número de itens sincronizados com sucesso.
