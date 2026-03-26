@@ -15,7 +15,7 @@ class PontoRastreamentoModel {
   factory PontoRastreamentoModel.fromJson(Map<String, dynamic> json) {
     return PontoRastreamentoModel(
       id: json['id'] as String,
-      atendimentoId: json['atendimento_id'] as String,
+      atendimentoId: json['atendimentoId'] as String,
       latitude: (json['latitude'] as num).toDouble(),
       longitude: (json['longitude'] as num).toDouble(),
       accuracy: (json['accuracy'] as num).toDouble(),
@@ -49,14 +49,15 @@ class PontoRastreamentoModel {
 
   Map<String, dynamic> toJson() => {
         'id': id,
-        'atendimento_id': atendimentoId,
+        'atendimentoId': atendimentoId,
         'latitude': latitude,
         'longitude': longitude,
         'accuracy': accuracy,
         'velocidade': velocidade,
         'timestamp': timestamp,
-        'synced': synced,
       };
+
+  Map<String, dynamic> toApiJson() => toJson();
 
   PontoRastreamento toEntity() {
     return PontoRastreamento(

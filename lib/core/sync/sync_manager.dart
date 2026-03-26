@@ -96,7 +96,48 @@ class SyncManager {
         maxRetries: syncMaxRetries,
       );
 
-      for (final item in itens) {
+      final processedIds = <String>{};
+
+      for (var index = 0; index < itens.length; index++) {
+        final item = itens[index];
+        if (processedIds.contains(item.id)) {
+          continue;
+        }
+
+        if (_isPontoRastreamentoCreate(item)) {
+          final batch = <SyncQueueEntry>[item];
+          processedIds.add(item.id);
+
+          for (var nextIndex = index + 1;
+              nextIndex < itens.length;
+              nextIndex++) {
+            final nextItem = itens[nextIndex];
+            if (!_isPontoRastreamentoCreate(nextItem) ||
+                processedIds.contains(nextItem.id)) {
+              break;
+            }
+            batch.add(nextItem);
+            processedIds.add(nextItem.id);
+          }
+
+          try {
+            await _enviarPontosRastreamentoBatch(batch);
+            for (final batchItem in batch) {
+              await syncQueue.remover(batchItem.id);
+            }
+            sincronizados += batch.length;
+          } catch (_) {
+            for (final batchItem in batch) {
+              final backoff = _calcularBackoff(batchItem.tentativas);
+              await syncQueue.incrementarTentativas(
+                batchItem.id,
+                backoff: backoff,
+              );
+            }
+          }
+          continue;
+        }
+
         try {
           await _enviar(item);
           await syncQueue.remover(item.id);
@@ -114,6 +155,9 @@ class SyncManager {
 
     return sincronizados;
   }
+
+  bool _isPontoRastreamentoCreate(SyncQueueEntry item) =>
+      item.entidade == 'ponto_rastreamento' && item.operacao == 'create';
 
   /// RN-035: backoff exponencial — 1s, 2s, 4s, 8s, 16s, max 60s.
   Duration _calcularBackoff(int tentativasAtuais) {
@@ -183,11 +227,44 @@ class SyncManager {
   Future<void> _enviarPontoRastreamento(
       String operacao, Map<String, dynamic> payload) async {
     if (operacao == 'create') {
-      await dio.post('/pontos-rastreamento', data: payload);
+      await dio.post(
+        '/rastreamento/pontos',
+        data: {
+          'pontos': [_normalizarPontoRastreamentoPayload(payload)],
+        },
+      );
     } else {
       throw UnsupportedError(
           'Operação desconhecida para ponto_rastreamento: $operacao');
     }
+  }
+
+  Future<void> _enviarPontosRastreamentoBatch(
+    List<SyncQueueEntry> itens,
+  ) async {
+    final pontos = itens
+        .map((item) => jsonDecode(item.payload) as Map<String, dynamic>)
+        .map(_normalizarPontoRastreamentoPayload)
+        .toList();
+
+    await dio.post(
+      '/rastreamento/pontos',
+      data: {'pontos': pontos},
+    );
+  }
+
+  Map<String, dynamic> _normalizarPontoRastreamentoPayload(
+    Map<String, dynamic> payload,
+  ) {
+    return {
+      'id': payload['id'],
+      'atendimentoId': payload['atendimentoId'] ?? payload['atendimento_id'],
+      'latitude': payload['latitude'],
+      'longitude': payload['longitude'],
+      'accuracy': payload['accuracy'],
+      'velocidade': payload['velocidade'],
+      'timestamp': payload['timestamp'],
+    };
   }
 
   Future<void> _enviarBase(

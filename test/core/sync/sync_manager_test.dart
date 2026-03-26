@@ -30,6 +30,9 @@ void main() {
     'atendimentoId': 'at-1',
     'latitude': -23.55,
     'longitude': -46.63,
+    'accuracy': 10.0,
+    'velocidade': 5.0,
+    'timestamp': '2024-01-01T10:00:00.000',
   };
 
   SyncQueueEntry makeEntry({
@@ -246,7 +249,8 @@ void main() {
             )).called(1);
       });
 
-      test('sincroniza ponto_rastreamento create com sucesso', () async {
+      test('sincroniza ponto_rastreamento create em batch com sucesso',
+          () async {
         final entry = makeEntry(
           id: 'sq-3',
           entidade: 'ponto_rastreamento',
@@ -257,11 +261,15 @@ void main() {
         when(() => mockNetworkInfo.isConnected).thenAnswer((_) async => true);
         when(() => mockSyncQueue.obterPendentes(maxRetries: syncMaxRetries))
             .thenAnswer((_) async => [entry]);
-        when(() => mockDio.post('/pontos-rastreamento', data: pontoPayload))
-            .thenAnswer((_) async => Response(
-                  requestOptions: RequestOptions(path: '/pontos-rastreamento'),
-                  statusCode: 201,
-                ));
+        when(() => mockDio.post(
+              '/rastreamento/pontos',
+              data: {
+                'pontos': [pontoPayload],
+              },
+            )).thenAnswer((_) async => Response(
+              requestOptions: RequestOptions(path: '/rastreamento/pontos'),
+              statusCode: 201,
+            ));
         when(() => mockSyncQueue.remover('sq-3')).thenAnswer((_) async {});
         when(() => mockSyncQueue.contarPendentes()).thenAnswer((_) async => 0);
         when(() => mockSyncQueue.contarComErro(maxRetries: syncMaxRetries))
@@ -270,6 +278,66 @@ void main() {
         final result = await syncManager.processar();
 
         expect(result, 1);
+        verify(() => mockDio.post(
+              '/rastreamento/pontos',
+              data: {
+                'pontos': [pontoPayload],
+              },
+            )).called(1);
+      });
+
+      test('sincroniza múltiplos pontos em um único batch', () async {
+        final pontoPayload2 = {
+          'id': 'p-2',
+          'atendimentoId': 'at-1',
+          'latitude': -23.56,
+          'longitude': -46.64,
+          'accuracy': 12.0,
+          'velocidade': 6.0,
+          'timestamp': '2024-01-01T10:01:00.000',
+        };
+        final entry1 = makeEntry(
+          id: 'sq-3',
+          entidade: 'ponto_rastreamento',
+          operacao: 'create',
+          payload: pontoPayload,
+        );
+        final entry2 = makeEntry(
+          id: 'sq-4',
+          entidade: 'ponto_rastreamento',
+          operacao: 'create',
+          payload: pontoPayload2,
+        );
+
+        when(() => mockNetworkInfo.isConnected).thenAnswer((_) async => true);
+        when(() => mockSyncQueue.obterPendentes(maxRetries: syncMaxRetries))
+            .thenAnswer((_) async => [entry1, entry2]);
+        when(() => mockDio.post(
+              '/rastreamento/pontos',
+              data: {
+                'pontos': [pontoPayload, pontoPayload2],
+              },
+            )).thenAnswer((_) async => Response(
+              requestOptions: RequestOptions(path: '/rastreamento/pontos'),
+              statusCode: 200,
+            ));
+        when(() => mockSyncQueue.remover('sq-3')).thenAnswer((_) async {});
+        when(() => mockSyncQueue.remover('sq-4')).thenAnswer((_) async {});
+        when(() => mockSyncQueue.contarPendentes()).thenAnswer((_) async => 0);
+        when(() => mockSyncQueue.contarComErro(maxRetries: syncMaxRetries))
+            .thenAnswer((_) async => 0);
+
+        final result = await syncManager.processar();
+
+        expect(result, 2);
+        verify(() => mockDio.post(
+              '/rastreamento/pontos',
+              data: {
+                'pontos': [pontoPayload, pontoPayload2],
+              },
+            )).called(1);
+        verify(() => mockSyncQueue.remover('sq-3')).called(1);
+        verify(() => mockSyncQueue.remover('sq-4')).called(1);
       });
 
       test('incrementa tentativas na falha de API', () async {

@@ -57,13 +57,12 @@ void main() {
     test('fromJson converte corretamente', () {
       final json = {
         'id': 'p-1',
-        'atendimento_id': 'at-1',
+        'atendimentoId': 'at-1',
         'latitude': -23.55,
         'longitude': -46.63,
         'accuracy': 10.0,
         'velocidade': 5.0,
         'timestamp': now.toIso8601String(),
-        'synced': false,
       };
 
       final model = PontoRastreamentoModel.fromJson(json);
@@ -87,16 +86,16 @@ void main() {
       final json = model.toJson();
 
       expect(json['id'], 'p-1');
-      expect(json['atendimento_id'], 'at-1');
+      expect(json['atendimentoId'], 'at-1');
       expect(json['latitude'], -23.55);
       expect(json['velocidade'], isNull);
-      expect(json['synced'], false);
+      expect(json.containsKey('synced'), isFalse);
     });
 
     test('fromJson lida com velocidade null', () {
       final json = {
         'id': 'p-1',
-        'atendimento_id': 'at-1',
+        'atendimentoId': 'at-1',
         'latitude': -23.55,
         'longitude': -46.63,
         'accuracy': 10.0,
