@@ -24,7 +24,11 @@ class ValorSelectorWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Tipo de Valor', style: Theme.of(context).textTheme.titleSmall),
+        Text('Tipo de Valor',
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.primary,
+                )),
         const SizedBox(height: 8),
         SegmentedButton<TipoValor>(
           key: const Key('tipoValorSegmented'),
@@ -54,7 +58,6 @@ class ValorSelectorWidget extends StatelessWidget {
             key: const Key('valorFixoField'),
             decoration: const InputDecoration(
               labelText: 'Valor fixo (R\$)',
-              border: OutlineInputBorder(),
               prefixText: 'R\$ ',
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),

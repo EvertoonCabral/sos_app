@@ -22,6 +22,7 @@
 12. [Plano de Ação — Sprints](#12-plano-de-ação--sprints)
 13. [Schema do Banco de Dados Local (Drift)](#13-schema-do-banco-de-dados-local-drift)
 14. [Convenções de Código](#14-convenções-de-código)
+15. [Design System / Identidade Visual](#15-design-system--identidade-visual)
 
 ---
 
@@ -1338,5 +1339,353 @@ import '../bloc/atendimento_state.dart';
 
 ---
 
-> **Última atualização:** Sprint 8 concluída — Polimento e QA (345 testes, 0 issues no `dart analyze`)
+> **Última atualização:** Design System documentado — Seção 15 adicionada (AppTheme, paleta, tipografia, padrões visuais)
 > **Status:** Todas as 9 sprints concluídas ✅
+
+---
+
+## 15. Design System / Identidade Visual
+
+> **Arquivo-fonte:** `lib/core/theme/app_theme.dart`  
+> **Branch de origem:** `feat/redesign-ui`  
+> **Regra:** Toda página e widget de apresentação **deve** usar exclusivamente as cores, tipografia e componentes definidos nesta seção. Hardcoded colors (`Colors.blue`, `Colors.red`, etc.) são proibidos — exceto para cores semânticas de status definidas em `AppTheme.statusColors`.
+
+---
+
+### 15.1 Paleta de Cores
+
+| Token                | Hex       | Uso                                                    |
+| -------------------- | --------- | ------------------------------------------------------ |
+| `primary`            | `#1A2B4A` | AppBar, botões primários, ícones de destaque, headings |
+| `primaryContainer`   | `#2E4A7A` | Gradient header, fundo de abas ativas                  |
+| `secondary`          | `#F4A727` | FAB, valores monetários, chips principais, destaques   |
+| `onSecondary`        | `#1A1A1A` | Texto sobre fundo secondary (âmbar)                    |
+| `secondaryContainer` | `#FFF3D6` | Fundo de ícones em cards, badges, hover suave          |
+| `surface`            | `#F8F9FC` | Background da Scaffold (fundo geral do app)            |
+| `onSurface`          | `#1C1C1E` | Texto principal sobre surface                          |
+| `error`              | `#D32F2F` | Erros, SnackBars de falha, validação de form           |
+| `outline`            | `#C4C8D0` | Bordas suaves, texto secundário/sublabels              |
+| `fillColor` (input)  | `#F0F2F8` | Fundo dos campos de texto (InputDecoration)            |
+| `divider`            | `#E8EAED` | Divisores, separadores, step connectors inativos       |
+
+**Como acessar no código:**
+
+```dart
+final cs = Theme.of(context).colorScheme;
+
+// Cores mais usadas:
+cs.primary           // azul-marinho
+cs.secondary         // âmbar
+cs.secondaryContainer // âmbar claro (fundo de ícones)
+cs.surface           // cinza gelo (fundo da tela)
+cs.outline           // cinza médio (texto secundário)
+```
+
+---
+
+### 15.2 Tipografia
+
+Fonte do sistema (padrão Flutter). Todos os estilos são obtidos via `Theme.of(context).textTheme`.
+
+| Token            | Tamanho | Peso | Uso típico                                           |
+| ---------------- | ------- | ---- | ---------------------------------------------------- |
+| `displayLarge`   | 32 sp   | w700 | Título principal de tела de entrada (ex: Login)      |
+| `headlineMedium` | 24 sp   | w700 | Títulos de seção, valores numéricos grandes          |
+| `headlineSmall`  | 20 sp   | w600 | Subtítulos importantes, valores monetários em cards  |
+| `titleLarge`     | 18 sp   | w600 | Títulos de cards maiores, cabeçalhos de bottom sheet |
+| `titleMedium`    | 16 sp   | w500 | Títulos de ListTile, cabeçalhos de seção em form     |
+| `bodyLarge`      | 16 sp   | w400 | Texto corrido principal                              |
+| `bodyMedium`     | 14 sp   | w400 | Subtítulo, descrições em cards                       |
+| `bodySmall`      | 12 sp   | w400 | Labels, rodapés, texto terciário (use `outline` cor) |
+| `labelLarge`     | 14 sp   | w600 | IDs, badges, labels de botão                         |
+
+**Boas práticas:**
+
+```dart
+// ✅ Correto — usar TextTheme do contexto
+Text('Olá', style: Theme.of(context).textTheme.titleMedium)
+
+// ✅ Correto — sobrescrever apenas uma propriedade
+Text('R$ 120,00',
+  style: theme.textTheme.headlineSmall?.copyWith(
+    color: theme.colorScheme.secondary,
+    fontWeight: FontWeight.bold,
+  ))
+
+// ❌ Errado — hardcoded
+Text('Título', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))
+```
+
+---
+
+### 15.3 Componentes e Padrões Visuais
+
+#### Cards
+
+Usar o `Card` do Material com as configurações do tema (elevation 0, borderRadius 16, fundo branco). Adicionar `BoxShadow` manual apenas quando for necessário simular elevação interativa:
+
+```dart
+// Card padrão — usa as configurações do AppTheme automaticamente
+Card(
+  child: Padding(
+    padding: const EdgeInsets.all(16),
+    child: ...,
+  ),
+)
+
+// Card clicável com sombra (ex: menu cards da HomePage)
+Container(
+  decoration: BoxDecoration(
+    color: Colors.white,
+    borderRadius: BorderRadius.circular(16),
+    boxShadow: [
+      BoxShadow(
+        offset: const Offset(0, 2),
+        blurRadius: 12,
+        color: Colors.black.withValues(alpha: 0.06),
+      ),
+    ],
+  ),
+  child: ...,
+)
+```
+
+#### Ícones em Containers (padrão de cards de menu/info)
+
+Sempre que um ícone for usado como destaque visual dentro de um card, envolvê-lo em um `Container` com fundo `secondaryContainer` e `borderRadius` de 12:
+
+```dart
+Container(
+  width: 48,
+  height: 48,
+  decoration: BoxDecoration(
+    color: theme.colorScheme.secondaryContainer,
+    borderRadius: BorderRadius.circular(12),
+  ),
+  child: Icon(
+    Icons.some_icon,
+    color: theme.colorScheme.secondary,
+  ),
+)
+```
+
+#### Campos de Texto (InputDecoration)
+
+O `AppTheme` configura um `InputDecorationTheme` global. **Não adicionar `border: OutlineInputBorder()` explicitamente** — o tema cuida de tudo.
+
+```dart
+// ✅ Correto — sem border explícita
+TextFormField(
+  decoration: const InputDecoration(
+    labelText: 'Nome *',
+    prefixIcon: Icon(Icons.person_outlined),
+  ),
+)
+
+// ❌ Errado — border explícita sobrescreve o tema
+TextFormField(
+  decoration: const InputDecoration(
+    labelText: 'Nome *',
+    border: OutlineInputBorder(), // remover!
+  ),
+)
+```
+
+Características do input temático:
+
+- Fundo: `#F0F2F8` (fillColor)
+- Sem borda visível no estado normal
+- BorderRadius: 12
+- Focus ring: cor `primary`
+
+#### Botões
+
+```dart
+// ElevatedButton — fundo primary, borderRadius 12
+ElevatedButton(
+  onPressed: ...,
+  child: const Text('Salvar'),
+)
+
+// OutlinedButton — borda primary 1.5px, borderRadius 12
+OutlinedButton(
+  onPressed: ...,
+  child: const Text('Cancelar'),
+)
+
+// Tamanho padrão recomendado para botões de ação principal
+SizedBox(
+  height: 48,
+  width: double.infinity,
+  child: ElevatedButton(...),
+)
+```
+
+#### AppBar
+
+- Fundo: `primary` (azul-marinho)
+- Ícones e texto: branco
+- Elevation: 0 (sem sombra)
+- Subtítulo opcional (padrão da `HomePage`):
+
+```dart
+AppBar(
+  title: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text('Título da Tela'),
+      Text(
+        'Subtítulo opcional',
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: Colors.white.withValues(alpha: 0.8),
+        ),
+      ),
+    ],
+  ),
+)
+```
+
+#### Bottom Bar com Sombra
+
+Usado em telas de detalhe com ações. Substituir `bottomNavigationBar` simples por um `Container` com sombra ascendente:
+
+```dart
+bottomNavigationBar: Container(
+  decoration: BoxDecoration(
+    color: Colors.white,
+    boxShadow: [
+      BoxShadow(
+        offset: const Offset(0, -2),
+        blurRadius: 8,
+        color: Colors.black.withValues(alpha: 0.06),
+      ),
+    ],
+  ),
+  child: SafeArea(
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [...],
+      ),
+    ),
+  ),
+)
+```
+
+#### Gradient Header
+
+Usado em telas de entrada/destaque (Login, Dashboard) para criar hierarquia visual:
+
+```dart
+Container(
+  decoration: BoxDecoration(
+    gradient: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        theme.colorScheme.primary,
+        theme.colorScheme.primaryContainer,
+      ],
+    ),
+    borderRadius: const BorderRadius.vertical(
+      bottom: Radius.circular(24),
+    ),
+  ),
+  child: ...,
+)
+```
+
+---
+
+### 15.4 Chips de Status de Atendimento
+
+Usar `AppTheme.statusColors` para obter as cores (bg, fg) correspondentes a cada status. **Nunca hardcodar cores de status.**
+
+```dart
+import '../../../../core/theme/app_theme.dart';
+
+// Em qualquer widget que exiba status:
+final (:Color bg, :Color fg) = AppTheme.statusColors[status.name] ??
+    (bg: Colors.grey.shade200, fg: Colors.black87);
+
+Chip(
+  label: Text(statusLabel, style: TextStyle(fontSize: 11, color: fg)),
+  backgroundColor: bg,
+  padding: EdgeInsets.zero,
+  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+  visualDensity: VisualDensity.compact,
+  side: BorderSide.none,
+)
+```
+
+**Mapa completo `statusColors`:**
+
+| Status           | Background | Foreground |
+| ---------------- | ---------- | ---------- |
+| `rascunho`       | `#E3F2FD`  | `#1565C0`  |
+| `emDeslocamento` | `#FFF8E1`  | `#E65100`  |
+| `emColeta`       | `#E8F5E9`  | `#2E7D32`  |
+| `emEntrega`      | `#F3E5F5`  | `#6A1B9A`  |
+| `retornando`     | `#FFF3E0`  | `#BF360C`  |
+| `concluido`      | `#E8F5E9`  | `#1B5E20`  |
+| `cancelado`      | `#FFEBEE`  | `#B71C1C`  |
+
+---
+
+### 15.5 Estrutura de uma Nova Tela
+
+Checklist ao criar qualquer nova `Page` ou `Widget` de apresentação:
+
+1. **Não importar** `app_theme.dart` diretamente — acessar via `Theme.of(context)`
+2. **Sempre** obter referência local antes de usar: `final theme = Theme.of(context);`
+3. **Nunca** usar `Colors.*` diretamente (exceto `Colors.white`, `Colors.black` em contextos de overlay com `withValues(alpha:)`)
+4. **Usar** `theme.textTheme.*` para todo texto — sem `TextStyle` manual
+5. **Remover** qualquer `border: OutlineInputBorder()` de `InputDecoration`
+6. **Cards** com `borderRadius: 16` e elevation 0 (tema padrão)
+7. **Keys** de widgets testados devem ser preservadas em qualquer refatoração
+
+```dart
+// Template mínimo de uma nova página
+class MinhaNovaPage extends StatelessWidget {
+  const MinhaNovaPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context); // ← referência local obrigatória
+
+    return Scaffold(
+      // surface (#F8F9FC) aplicado automaticamente pelo tema
+      appBar: AppBar(
+        title: const Text('Minha Página'),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Título', style: theme.textTheme.titleMedium),
+                  const SizedBox(height: 8),
+                  Text('Descrição', style: theme.textTheme.bodyMedium),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+---
+
+### 15.6 Regras de Manutenção do Design System
+
+- **Alterar cores ou estilos:** sempre em `lib/core/theme/app_theme.dart`, nunca por sobrescrita inline.
+- **Adicionar nova cor semântica** (ex: novo status): adicionar em `AppTheme.statusColors` e documentar na tabela da Seção 15.4.
+- **Novas variações de componente** (ex: card com borda lateral): extrair para um widget privado reutilizável dentro da feature; se usado em ≥ 2 features, mover para `lib/core/widgets/`.
+- **Não usar** `withOpacity()` — método deprecated; usar `withValues(alpha: x)` onde `x` está no intervalo `0.0–1.0`.

@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get_it/get_it.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:sos_app/core/routing/auth_gate.dart';
@@ -9,6 +10,12 @@ import 'package:sos_app/features/auth/domain/entities/usuario.dart';
 import 'package:sos_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:sos_app/features/auth/presentation/bloc/auth_event.dart';
 import 'package:sos_app/features/auth/presentation/bloc/auth_state.dart';
+import 'package:sos_app/features/dashboard/domain/repositories/dashboard_repository.dart';
+import 'package:sos_app/features/dashboard/domain/usecases/obter_km_por_cliente.dart';
+import 'package:sos_app/features/dashboard/domain/usecases/obter_resumo_periodo.dart';
+import 'package:sos_app/features/dashboard/domain/usecases/obter_tempo_por_etapa.dart';
+
+import '../../helpers/mocks.dart';
 
 class MockAuthBloc extends MockBloc<AuthEvent, AuthState> implements AuthBloc {}
 
@@ -25,7 +32,18 @@ void main() {
   });
 
   setUp(() {
+    final getIt = GetIt.instance;
+    getIt.reset();
+    getIt.registerFactory<ObterResumoPeriodo>(() => MockObterResumoPeriodo());
+    getIt.registerFactory<ObterKmPorCliente>(() => MockObterKmPorCliente());
+    getIt.registerFactory<ObterTempoPorEtapa>(() => MockObterTempoPorEtapa());
+    getIt.registerFactory<DashboardRepository>(() => MockDashboardRepository());
+
     mockBloc = MockAuthBloc();
+  });
+
+  tearDown(() {
+    GetIt.instance.reset();
   });
 
   Widget buildGate(AuthState initialState) {
@@ -74,7 +92,7 @@ void main() {
       );
       await tester.pumpWidget(buildGate(AuthAutenticado(usuario)));
       await tester.pumpAndSettle();
-      expect(find.text('Bem-vindo, João!'), findsOneWidget);
+      expect(find.text('Olá, João'), findsOneWidget);
     });
 
     testWidgets('deve enviar SessaoVerificada ao iniciar', (tester) async {

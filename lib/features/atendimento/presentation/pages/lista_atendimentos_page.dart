@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../../../core/geo/geo_service.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/error_state_widget.dart';
 import '../../../base/domain/entities/base.dart';
@@ -261,23 +262,10 @@ class _AtendimentoTile extends StatelessWidget {
   final Atendimento atendimento;
   final VoidCallback? onTap;
 
-  Color _statusColor() {
-    switch (atendimento.status) {
-      case AtendimentoStatus.rascunho:
-        return Colors.grey;
-      case AtendimentoStatus.emDeslocamento:
-        return Colors.blue;
-      case AtendimentoStatus.emColeta:
-        return Colors.orange;
-      case AtendimentoStatus.emEntrega:
-        return Colors.deepPurple;
-      case AtendimentoStatus.retornando:
-        return Colors.teal;
-      case AtendimentoStatus.concluido:
-        return Colors.green;
-      case AtendimentoStatus.cancelado:
-        return Colors.red;
-    }
+  (Color, Color) _statusColors() {
+    final key = atendimento.status.name;
+    return AppTheme.statusColors[key] ??
+        (const Color(0xFFE3F2FD), const Color(0xFF0D47A1));
   }
 
   String _statusLabel() {
@@ -301,32 +289,81 @@ class _AtendimentoTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final (bg, fg) = _statusColors();
+
     return Card(
       key: Key('atendimentoTile_${atendimento.id}'),
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: _statusColor(),
-          child: const Icon(Icons.local_shipping, color: Colors.white),
-        ),
-        title: Text(
-          '${atendimento.localDeColeta.enderecoTexto} → '
-          '${atendimento.localDeEntrega.enderecoTexto}',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Text(
-          '${atendimento.distanciaEstimadaKm.toStringAsFixed(1)} km  •  '
-          '${_statusLabel()}',
-        ),
-        trailing: Chip(
-          label: Text(
-            _statusLabel(),
-            style: const TextStyle(fontSize: 10, color: Colors.white),
-          ),
-          backgroundColor: _statusColor(),
-        ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
         onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '#${atendimento.id.length > 8 ? atendimento.id.substring(0, 8) : atendimento.id}',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Chip(
+                      label: Text(
+                        _statusLabel(),
+                        style: TextStyle(fontSize: 11, color: fg),
+                      ),
+                      backgroundColor: bg,
+                      padding: EdgeInsets.zero,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
+                      side: BorderSide.none,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${atendimento.localDeColeta.enderecoTexto} → '
+                      '${atendimento.localDeEntrega.enderecoTexto}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: cs.outline,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${atendimento.distanciaEstimadaKm.toStringAsFixed(1)} km',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: cs.secondary,
+                    ),
+                  ),
+                  if (atendimento.valorCobrado != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        'R\$ ${atendimento.valorCobrado!.toStringAsFixed(2)}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: cs.outline,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

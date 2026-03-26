@@ -105,8 +105,15 @@ class _MetricaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Card(
-      child: Padding(
+      clipBehavior: Clip.antiAlias,
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(color: cor, width: 3),
+          ),
+        ),
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -115,14 +122,17 @@ class _MetricaCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               titulo,
-              style: Theme.of(context).textTheme.bodySmall,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.outline,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
               valor,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.secondary,
+              ),
             ),
           ],
         ),

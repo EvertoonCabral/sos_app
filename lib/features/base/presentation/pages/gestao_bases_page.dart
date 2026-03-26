@@ -25,8 +25,30 @@ class _GestaoBasesPageState extends State<GestaoBasesPage> {
     context.read<BaseBloc>().add(const ListarBasesEvent());
   }
 
-  void _definirPrincipal(String baseId) {
-    context.read<BaseBloc>().add(DefinirBasePrincipalEvent(baseId));
+  void _definirPrincipal(String baseId) async {
+    final confirmou = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Definir base principal'),
+        content: const Text(
+          'Tem certeza que deseja definir esta base como principal?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Não'),
+          ),
+          ElevatedButton(
+            key: const Key('confirmarDefinirPrincipalButton'),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Sim, definir'),
+          ),
+        ],
+      ),
+    );
+    if (confirmou == true && mounted) {
+      context.read<BaseBloc>().add(DefinirBasePrincipalEvent(baseId));
+    }
   }
 
   void _abrirFormCriar() async {
@@ -107,21 +129,46 @@ class _BaseTile extends StatelessWidget {
     return Card(
       key: Key('baseTile_${base.id}'),
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      color: base.isPrincipal ? theme.colorScheme.primaryContainer : null,
       child: ListTile(
-        leading: Icon(
-          base.isPrincipal ? Icons.star : Icons.warehouse_outlined,
-          color: base.isPrincipal ? Colors.amber : null,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        leading: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: base.isPrincipal
+                ? theme.colorScheme.secondaryContainer
+                : theme.colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            base.isPrincipal ? Icons.star_rounded : Icons.warehouse_outlined,
+            color: base.isPrincipal
+                ? theme.colorScheme.secondary
+                : theme.colorScheme.outline,
+          ),
         ),
         title: Text(
           base.nome,
-          style: base.isPrincipal
-              ? const TextStyle(fontWeight: FontWeight.bold)
-              : null,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
         ),
-        subtitle: Text(base.local.enderecoTexto),
+        subtitle: Text(
+          base.local.enderecoTexto,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.outline,
+          ),
+        ),
         trailing: base.isPrincipal
-            ? const Chip(label: Text('Principal'))
+            ? Chip(
+                label: const Text('Principal'),
+                backgroundColor: theme.colorScheme.secondaryContainer,
+                labelStyle: TextStyle(
+                  color: theme.colorScheme.secondary,
+                  fontWeight: FontWeight.w600,
+                ),
+                side: BorderSide.none,
+              )
             : TextButton(
                 key: Key('setPrincipal_${base.id}'),
                 onPressed: onDefinirPrincipal,

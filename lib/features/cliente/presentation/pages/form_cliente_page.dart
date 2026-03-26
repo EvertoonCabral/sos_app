@@ -105,7 +105,6 @@ class _FormClientePageState extends State<FormClientePage> {
                   decoration: const InputDecoration(
                     labelText: 'Nome *',
                     prefixIcon: Icon(Icons.person_outlined),
-                    border: OutlineInputBorder(),
                   ),
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) {
@@ -123,7 +122,6 @@ class _FormClientePageState extends State<FormClientePage> {
                   decoration: const InputDecoration(
                     labelText: 'Telefone *',
                     prefixIcon: Icon(Icons.phone_outlined),
-                    border: OutlineInputBorder(),
                   ),
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) {
@@ -140,7 +138,6 @@ class _FormClientePageState extends State<FormClientePage> {
                   decoration: const InputDecoration(
                     labelText: 'Documento (CPF/CNPJ)',
                     prefixIcon: Icon(Icons.badge_outlined),
-                    border: OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 24),

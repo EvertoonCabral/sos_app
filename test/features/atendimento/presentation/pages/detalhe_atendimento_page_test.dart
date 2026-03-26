@@ -110,7 +110,7 @@ void main() {
       expect(find.text('Local de Coleta'), findsOneWidget);
       expect(find.text('Local de Entrega'), findsOneWidget);
       expect(find.text('Local de Retorno'), findsOneWidget);
-      expect(find.textContaining('30.0 km'), findsOneWidget);
+      expect(find.text('30.0'), findsOneWidget);
     });
 
     testWidgets('não deve exibir botões para atendimento concluído',
@@ -138,13 +138,17 @@ void main() {
       expect(find.byKey(const Key('cancelarAtendimentoButton')), findsNothing);
     });
 
-    testWidgets('deve disparar evento ao clicar avançar status',
+    testWidgets('deve disparar evento ao clicar avançar status e confirmar',
         (tester) async {
       when(() => mockBloc.state).thenReturn(const AtendimentoInicial());
       await tester.pumpWidget(buildPage(atendimentoBase));
 
       await tester.tap(find.byKey(const Key('avancarStatusButton')));
-      await tester.pump();
+      await tester.pumpAndSettle();
+
+      // Confirm the dialog
+      await tester.tap(find.byKey(const Key('confirmarAvancarButton')));
+      await tester.pumpAndSettle();
 
       verify(
         () => mockBloc.add(

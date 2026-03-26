@@ -96,7 +96,6 @@ class _FormBasePageState extends State<FormBasePage> {
                   decoration: const InputDecoration(
                     labelText: 'Nome da Base *',
                     prefixIcon: Icon(Icons.warehouse_outlined),
-                    border: OutlineInputBorder(),
                   ),
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) {
@@ -126,7 +125,6 @@ class _FormBasePageState extends State<FormBasePage> {
                   decoration: const InputDecoration(
                     labelText: 'Complemento (opcional)',
                     prefixIcon: Icon(Icons.info_outline),
-                    border: OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -142,8 +140,8 @@ class _FormBasePageState extends State<FormBasePage> {
                             ? const SizedBox(
                                 width: 24,
                                 height: 24,
-                                child: CircularProgressIndicator(
-                                    strokeWidth: 2),
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
                               )
                             : const Text('Salvar'),
                       ),

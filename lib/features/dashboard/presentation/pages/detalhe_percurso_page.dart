@@ -47,11 +47,32 @@ class _DetalhePercursoPageState extends State<DetalhePercursoPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Atendimento',
-                    style: Theme.of(context).textTheme.titleMedium,
+                  Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color:
+                              Theme.of(context).colorScheme.secondaryContainer,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          Icons.local_shipping_outlined,
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Atendimento',
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 16),
                   _InfoRow(
                     label: 'Saída',
                     valor: atendimento.pontoDeSaida.enderecoTexto,
@@ -94,7 +115,10 @@ class _DetalhePercursoPageState extends State<DetalhePercursoPage> {
           // Mapa do percurso
           Text(
             'Percurso no Mapa',
-            style: Theme.of(context).textTheme.titleMedium,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
           ),
           const SizedBox(height: 8),
           FutureBuilder<List<PontoRastreamento>>(

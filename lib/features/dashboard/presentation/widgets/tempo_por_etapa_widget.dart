@@ -27,7 +27,10 @@ class TempoPorEtapaWidget extends StatelessWidget {
           children: [
             Text(
               'Tempo Médio por Etapa',
-              style: Theme.of(context).textTheme.titleMedium,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
             ),
             Text(
               '${tempoPorEtapa.totalAnalisados} atendimentos analisados',
