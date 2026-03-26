@@ -115,6 +115,7 @@ extension GetItInjectableX on _i174.GetIt {
     gh.singleton<_i558.FlutterSecureStorage>(() => networkModule.secureStorage);
     gh.lazySingleton<_i11.DistanceCalculator>(
         () => coreModule.distanceCalculator);
+    gh.lazySingleton<_i643.GeoService>(() => coreModule.geoService);
     gh.lazySingleton<_i513.GpsCollector>(
         () => rastreamentoModule.gpsCollector());
     gh.lazySingleton<_i992.AuthLocalDatasource>(
@@ -178,8 +179,6 @@ extension GetItInjectableX on _i174.GetIt {
         rastreamentoModule.obterPercurso(gh<_i22.RastreamentoRepository>()));
     gh.lazySingleton<_i161.AuthRemoteDatasource>(
         () => authModule.authRemoteDatasource(gh<_i361.Dio>()));
-    gh.lazySingleton<_i643.GeoService>(
-        () => coreModule.geoService(gh<_i361.Dio>()));
     gh.lazySingleton<_i817.DashboardRemoteDatasource>(
         () => dashboardModule.dashboardRemoteDatasource(gh<_i361.Dio>()));
     gh.singleton<_i1069.HttpClient>(() => _i1069.HttpClient(

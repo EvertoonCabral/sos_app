@@ -7,9 +7,15 @@ import 'geo_service.dart';
 
 /// Implementação real do [GeoService] usando geolocator + geocoding + Nominatim.
 class GeoServiceImpl implements GeoService {
-  GeoServiceImpl(this._dio);
-
-  final Dio _dio;
+  /// Dio dedicado para chamadas externas (sem interceptors da API).
+  final Dio _dio = Dio(BaseOptions(
+    connectTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 10),
+    headers: {
+      'User-Agent': 'SosApp/1.0 (Flutter)',
+      'Accept-Language': 'pt-BR,pt;q=0.9',
+    },
+  ));
 
   static const _nominatimUrl =
       'https://nominatim.openstreetmap.org/search';
@@ -23,13 +29,9 @@ class GeoServiceImpl implements GeoService {
           'q': query,
           'format': 'json',
           'limit': 5,
-          'addressdetails': 0,
+          'addressdetails': 1,
           'countrycodes': 'br',
         },
-        options: Options(headers: {
-          'User-Agent': 'SosApp/1.0 (Flutter; Android)',
-          'Accept-Language': 'pt-BR,pt;q=0.9',
-        }),
       );
 
       final data = response.data;
@@ -37,20 +39,43 @@ class GeoServiceImpl implements GeoService {
 
       return data
           .whereType<Map<String, dynamic>>()
-          .map((item) => LocalGeo(
-                enderecoTexto: item['display_name'] as String? ?? '',
-                latitude: double.tryParse(
-                        item['lat']?.toString() ?? '') ??
-                    0.0,
-                longitude: double.tryParse(
-                        item['lon']?.toString() ?? '') ??
-                    0.0,
-              ))
+          .map((item) {
+            final addr = item['address'] as Map<String, dynamic>?;
+            final texto = _formatarEndereco(addr, item['display_name'] as String? ?? '');
+            return LocalGeo(
+              enderecoTexto: texto,
+              latitude: double.tryParse(item['lat']?.toString() ?? '') ?? 0.0,
+              longitude: double.tryParse(item['lon']?.toString() ?? '') ?? 0.0,
+            );
+          })
           .where((l) => l.enderecoTexto.isNotEmpty)
           .toList();
     } catch (_) {
       return [];
     }
+  }
+
+  /// Formata o endereço de forma limpa a partir dos campos do Nominatim.
+  String _formatarEndereco(Map<String, dynamic>? addr, String fallback) {
+    if (addr == null) return fallback;
+
+    final rua = addr['road'] as String? ?? '';
+    final numero = addr['house_number'] as String? ?? '';
+    final bairro = addr['suburb'] as String?
+        ?? addr['neighbourhood'] as String? ?? '';
+    final cidade = addr['city'] as String?
+        ?? addr['town'] as String?
+        ?? addr['village'] as String? ?? '';
+    final estado = addr['state'] as String? ?? '';
+
+    final parts = <String>[
+      if (rua.isNotEmpty) numero.isNotEmpty ? '$rua, $numero' : rua,
+      if (bairro.isNotEmpty) bairro,
+      if (cidade.isNotEmpty) cidade,
+      if (estado.isNotEmpty) estado,
+    ];
+
+    return parts.isNotEmpty ? parts.join(' - ') : fallback;
   }
 
   @override
