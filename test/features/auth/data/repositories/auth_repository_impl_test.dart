@@ -22,19 +22,6 @@ void main() {
   late MockAuthLocalDatasource mockLocal;
   late MockNetworkInfo mockNetwork;
 
-  setUp(() {
-    mockRemote = MockAuthRemoteDatasource();
-    mockLocal = MockAuthLocalDatasource();
-    mockNetwork = MockNetworkInfo();
-    repository = AuthRepositoryImpl(
-      remoteDatasource: mockRemote,
-      localDatasource: mockLocal,
-      networkInfo: mockNetwork,
-    );
-
-    registerFallbackValue(tModel);
-  });
-
   const tModel = UsuarioModel(
     id: 'user-123',
     nome: 'João Operador',
@@ -67,6 +54,19 @@ void main() {
     role: 'operador',
     expiresAt: DateTime(2026, 4, 1),
   );
+
+  setUp(() {
+    mockRemote = MockAuthRemoteDatasource();
+    mockLocal = MockAuthLocalDatasource();
+    mockNetwork = MockNetworkInfo();
+    repository = AuthRepositoryImpl(
+      remoteDatasource: mockRemote,
+      localDatasource: mockLocal,
+      networkInfo: mockNetwork,
+    );
+
+    registerFallbackValue(tModel);
+  });
 
   // ─── autenticar ─────────────────────────────────────────────
 

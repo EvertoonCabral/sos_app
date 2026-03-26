@@ -832,6 +832,14 @@ class AtendimentoState with _$AtendimentoState {
 
 **Ciclo Red → Green → Refactor** em toda lógica de negócio.
 
+**Regra obrigatória do projeto:** nenhuma tarefa é considerada concluída enquanto todos os testes automatizados do app estiverem funcionais. Teste quebrado bloqueia entrega.
+
+### Critério de aceite obrigatório
+
+- Toda alteração começa com teste novo ou ajuste de teste existente que descreva o comportamento esperado.
+- A implementação só é aceita depois de levar a suíte de volta ao verde.
+- Antes de finalizar qualquer demanda, executar `flutter test` e corrigir qualquer falha relacionada à base atual.
+
 ### O que DEVE ter testes
 
 | Camada                    | O que testar                        | Tipo de Teste                |

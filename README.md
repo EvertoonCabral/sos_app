@@ -2,6 +2,10 @@
 
 App Flutter offline-first para gestão de atendimentos de guincho com rastreamento GPS e relatórios de produtividade.
 
+## Regra de Qualidade
+
+TDD é uma regra obrigatória do projeto. Toda alteração deve começar ou ser acompanhada por teste que descreva o comportamento esperado, e nenhuma tarefa é considerada concluída enquanto a suíte automatizada não estiver 100% verde.
+
 ## Visão Geral
 
 - **Plataforma:** Flutter (Android e iOS)
@@ -9,7 +13,7 @@ App Flutter offline-first para gestão de atendimentos de guincho com rastreamen
 - **Banco local:** Drift (SQLite) — 7 tabelas, 6 índices
 - **DI:** GetIt + Injectable
 - **HTTP:** Dio com interceptors (auth, retry, logging)
-- **Testes:** 345 testes unitários e de widget (mocktail + bloc_test)
+- **Testes:** suíte automatizada obrigatória via TDD, mantida 100% verde
 - **Análise:** `dart analyze` — 0 issues
 
 ## Funcionalidades
@@ -62,6 +66,9 @@ dart run build_runner build --delete-conflicting-outputs
 # Rodar testes
 flutter test
 
+# Regra de aceite local antes de concluir qualquer tarefa
+flutter test
+
 # Análise estática
 dart analyze
 
@@ -78,11 +85,11 @@ flutter build appbundle --dart-define=FLAVOR=prod
 
 ## Flavors
 
-| Flavor    | API Base URL                            | App Name         |
-| --------- | --------------------------------------- | ---------------- |
-| `dev`     | `http://10.0.2.2:3000`                  | GuinchoApp [DEV] |
-| `staging` | `https://staging-api.guinchoapp.com.br` | GuinchoApp [STG] |
-| `prod`    | `https://api.guinchoapp.com.br`         | GuinchoApp       |
+| Flavor    | API Base URL                                               | App Name         |
+| --------- | ---------------------------------------------------------- | ---------------- |
+| `dev`     | `https://burghal-klara-nonextraneously.ngrok-free.dev/api` | GuinchoApp [DEV] |
+| `staging` | `https://burghal-klara-nonextraneously.ngrok-free.dev/api` | GuinchoApp [STG] |
+| `prod`    | `https://api.guinchoapp.com.br/api`                        | GuinchoApp       |
 
 ## Banco de Dados
 

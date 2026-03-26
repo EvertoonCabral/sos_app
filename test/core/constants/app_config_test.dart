@@ -18,9 +18,15 @@ void main() {
       expect(config.appName, contains('[DEV]'));
     });
 
-    test('apiBaseUrl deve apontar para localhost no modo dev', () {
+    test(
+        'apiBaseUrl deve usar endpoint HTTP(S) configurado com prefixo /api no modo dev',
+        () {
       final config = AppConfig.instance;
-      expect(config.apiBaseUrl, contains('10.0.2.2'));
+      final uri = Uri.parse(config.apiBaseUrl);
+
+      expect(uri.hasScheme, isTrue);
+      expect(uri.scheme == 'http' || uri.scheme == 'https', isTrue);
+      expect(uri.path, '/api');
     });
   });
 }
