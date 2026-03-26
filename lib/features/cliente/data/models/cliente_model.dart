@@ -20,12 +20,12 @@ class ClienteModel {
         nome: json['nome'] as String,
         telefone: json['telefone'] as String,
         documento: json['documento'] as String?,
-        enderecoDefaultJson: json['endereco_default'] != null
-            ? jsonEncode(json['endereco_default'])
+        enderecoDefaultJson: json['enderecoDefault'] != null
+            ? jsonEncode(json['enderecoDefault'])
             : null,
-        criadoEm: json['criado_em'] as String,
-        atualizadoEm: json['atualizado_em'] as String,
-        sincronizadoEm: json['sincronizado_em'] as String?,
+        criadoEm: json['criadoEm'] as String,
+        atualizadoEm: json['atualizadoEm'] as String,
+        sincronizadoEm: json['sincronizadoEm'] as String?,
       );
 
   factory ClienteModel.fromEntity(Cliente entity) => ClienteModel(
@@ -35,7 +35,7 @@ class ClienteModel {
         documento: entity.documento,
         enderecoDefaultJson: entity.enderecoDefault != null
             ? jsonEncode({
-                'endereco_texto': entity.enderecoDefault!.enderecoTexto,
+                'enderecoTexto': entity.enderecoDefault!.enderecoTexto,
                 'latitude': entity.enderecoDefault!.latitude,
                 'longitude': entity.enderecoDefault!.longitude,
                 'complemento': entity.enderecoDefault!.complemento,
@@ -60,12 +60,12 @@ class ClienteModel {
         'nome': nome,
         'telefone': telefone,
         'documento': documento,
-        'endereco_default': enderecoDefaultJson != null
+        'enderecoDefault': enderecoDefaultJson != null
             ? jsonDecode(enderecoDefaultJson!)
             : null,
-        'criado_em': criadoEm,
-        'atualizado_em': atualizadoEm,
-        'sincronizado_em': sincronizadoEm,
+        'criadoEm': criadoEm,
+        'atualizadoEm': atualizadoEm,
+        'sincronizadoEm': sincronizadoEm,
       };
 
   Cliente toEntity() {
@@ -73,7 +73,7 @@ class ClienteModel {
     if (enderecoDefaultJson != null) {
       final map = jsonDecode(enderecoDefaultJson!) as Map<String, dynamic>;
       endereco = LocalGeo(
-        enderecoTexto: map['endereco_texto'] as String,
+        enderecoTexto: map['enderecoTexto'] as String,
         latitude: (map['latitude'] as num).toDouble(),
         longitude: (map['longitude'] as num).toDouble(),
         complemento: map['complemento'] as String?,

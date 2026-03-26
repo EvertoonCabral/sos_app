@@ -6,34 +6,58 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:injectable/injectable.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
+import '../constants/app_config.dart';
 import '../constants/app_constants.dart';
 import 'network_info.dart';
+
+Dio configureDio({
+  required Dio dio,
+  required FlutterSecureStorage secureStorage,
+  required NetworkInfo networkInfo,
+}) {
+  dio.options = BaseOptions(
+    baseUrl: AppConfig.instance.apiBaseUrl,
+    connectTimeout: httpConnectTimeout,
+    receiveTimeout: httpReceiveTimeout,
+    headers: {
+      HttpHeaders.contentTypeHeader: ContentType.json.value,
+      HttpHeaders.acceptHeader: ContentType.json.value,
+    },
+  );
+
+  if (!dio.interceptors.any((interceptor) => interceptor is AuthInterceptor)) {
+    dio.interceptors.add(AuthInterceptor(secureStorage));
+  }
+
+  if (!dio.interceptors.any((interceptor) => interceptor is RetryInterceptor)) {
+    dio.interceptors.add(RetryInterceptor(dio, networkInfo));
+  }
+
+  if (kDebugMode &&
+      !dio.interceptors.any(
+        (interceptor) => interceptor is PrettyDioLogger,
+      )) {
+    dio.interceptors.add(
+      PrettyDioLogger(
+        requestHeader: true,
+        requestBody: true,
+        responseBody: true,
+      ),
+    );
+  }
+
+  return dio;
+}
 
 /// Configures and provides a [Dio] HTTP client with auth, logging and retry.
 @singleton
 class HttpClient {
   HttpClient(this._dio, this._secureStorage, this._networkInfo) {
-    _dio.options = BaseOptions(
-      connectTimeout: httpConnectTimeout,
-      receiveTimeout: httpReceiveTimeout,
-      headers: {
-        HttpHeaders.contentTypeHeader: ContentType.json.value,
-        HttpHeaders.acceptHeader: ContentType.json.value,
-      },
+    configureDio(
+      dio: _dio,
+      secureStorage: _secureStorage,
+      networkInfo: _networkInfo,
     );
-
-    _dio.interceptors.add(_AuthInterceptor(_secureStorage));
-    _dio.interceptors.add(_RetryInterceptor(_dio, _networkInfo));
-
-    if (kDebugMode) {
-      _dio.interceptors.add(
-        PrettyDioLogger(
-          requestHeader: true,
-          requestBody: true,
-          responseBody: true,
-        ),
-      );
-    }
   }
 
   final Dio _dio;
@@ -45,8 +69,8 @@ class HttpClient {
 
 /// Injects Bearer token from secure storage into every request.
 /// If no token is stored (e.g. login endpoint), the request proceeds without it.
-class _AuthInterceptor extends Interceptor {
-  _AuthInterceptor(this._secureStorage);
+class AuthInterceptor extends Interceptor {
+  AuthInterceptor(this._secureStorage);
 
   final FlutterSecureStorage _secureStorage;
   static const _tokenKey = 'auth_token';
@@ -65,8 +89,8 @@ class _AuthInterceptor extends Interceptor {
 }
 
 /// Retries the request once on network / timeout errors.
-class _RetryInterceptor extends Interceptor {
-  _RetryInterceptor(this._dio, this._networkInfo);
+class RetryInterceptor extends Interceptor {
+  RetryInterceptor(this._dio, this._networkInfo);
 
   final Dio _dio;
   final NetworkInfo _networkInfo;

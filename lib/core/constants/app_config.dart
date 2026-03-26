@@ -30,21 +30,21 @@ class AppConfig {
       case 'prod':
         return const AppConfig._(
           flavor: Flavor.prod,
-          apiBaseUrl: 'https://api.guinchoapp.com.br',
+          apiBaseUrl: 'https://api.guinchoapp.com.br/api',
           appName: 'GuinchoApp',
           enableLogging: false,
         );
       case 'staging':
         return const AppConfig._(
           flavor: Flavor.staging,
-          apiBaseUrl: 'https://staging-api.guinchoapp.com.br',
+          apiBaseUrl: 'https://burghal-klara-nonextraneously.ngrok-free.dev/api',
           appName: 'GuinchoApp [STG]',
           enableLogging: true,
         );
       default:
         return const AppConfig._(
           flavor: Flavor.dev,
-          apiBaseUrl: 'http://10.0.2.2:3000',
+          apiBaseUrl: 'https://burghal-klara-nonextraneously.ngrok-free.dev/api',
           appName: 'GuinchoApp [DEV]',
           enableLogging: true,
         );

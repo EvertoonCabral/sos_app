@@ -52,7 +52,7 @@ void main() {
     id: 'base-001',
     nome: 'Garagem SP',
     localJson:
-        '{"endereco_texto":"Rua X, 100","latitude":-23.5,"longitude":-46.6,"complemento":null}',
+        '{"enderecoTexto":"Rua X, 100","latitude":-23.5,"longitude":-46.6,"complemento":null}',
     isPrincipal: true,
     criadoEm: '2026-03-01T00:00:00.000',
   );

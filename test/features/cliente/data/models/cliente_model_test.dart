@@ -10,15 +10,15 @@ void main() {
     'nome': 'Maria Silva',
     'telefone': '+5511988880000',
     'documento': '123.456.789-00',
-    'endereco_default': {
-      'endereco_texto': 'Rua das Flores, 123',
+    'enderecoDefault': {
+      'enderecoTexto': 'Rua das Flores, 123',
       'latitude': -23.5,
       'longitude': -46.6,
       'complemento': 'Apto 42',
     },
-    'criado_em': '2026-03-01T00:00:00.000',
-    'atualizado_em': '2026-03-01T00:00:00.000',
-    'sincronizado_em': null,
+    'criadoEm': '2026-03-01T00:00:00.000',
+    'atualizadoEm': '2026-03-01T00:00:00.000',
+    'sincronizadoEm': null,
   };
 
   const tJsonSemEndereco = {
@@ -26,10 +26,10 @@ void main() {
     'nome': 'João Santos',
     'telefone': '+5511977770000',
     'documento': null,
-    'endereco_default': null,
-    'criado_em': '2026-03-02T00:00:00.000',
-    'atualizado_em': '2026-03-02T00:00:00.000',
-    'sincronizado_em': null,
+    'enderecoDefault': null,
+    'criadoEm': '2026-03-02T00:00:00.000',
+    'atualizadoEm': '2026-03-02T00:00:00.000',
+    'sincronizadoEm': null,
   };
 
   group('ClienteModel', () {
@@ -56,8 +56,8 @@ void main() {
 
       expect(json['id'], 'cli-001');
       expect(json['nome'], 'Maria Silva');
-      expect(json['endereco_default'], isA<Map>());
-      expect(json['endereco_default']['latitude'], -23.5);
+      expect(json['enderecoDefault'], isA<Map>());
+      expect(json['enderecoDefault']['latitude'], -23.5);
     });
 
     test('toEntity deve converter para Cliente com LocalGeo', () {

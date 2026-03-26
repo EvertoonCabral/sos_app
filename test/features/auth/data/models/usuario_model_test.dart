@@ -10,9 +10,9 @@ void main() {
     'telefone': '+5511999990000',
     'email': 'joao@guincho.com',
     'role': 'operador',
-    'valor_por_km_default': 5.0,
-    'criado_em': '2026-03-01T00:00:00.000',
-    'sincronizado_em': null,
+    'valorPorKmDefault': 5.0,
+    'criadoEm': '2026-03-01T00:00:00.000',
+    'sincronizadoEm': null,
   };
 
   const tModel = UsuarioModel(
@@ -53,9 +53,9 @@ void main() {
       expect(result['nome'], 'João Operador');
       expect(result['email'], 'joao@guincho.com');
       expect(result['role'], 'operador');
-      expect(result['valor_por_km_default'], 5.0);
-      expect(result['criado_em'], '2026-03-01T00:00:00.000');
-      expect(result['sincronizado_em'], isNull);
+      expect(result['valorPorKmDefault'], 5.0);
+      expect(result['criadoEm'], '2026-03-01T00:00:00.000');
+      expect(result['sincronizadoEm'], isNull);
     });
 
     test('toEntity deve converter para Usuario correto', () {

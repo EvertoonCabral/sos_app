@@ -40,3 +40,36 @@ const Map<AtendimentoStatus, List<AtendimentoStatus>> transicoesValidas = {
   AtendimentoStatus.concluido: [],
   AtendimentoStatus.cancelado: [],
 };
+
+// ---------------------------------------------------------------------------
+// Conversores PascalCase ↔ camelCase para serialização com a API REST.
+//
+// O backend .NET serializa enums em PascalCase ("EmDeslocamento", "PorKm"),
+// enquanto os nomes dos enums Dart são camelCase ("emDeslocamento", "porKm").
+// ---------------------------------------------------------------------------
+
+extension AtendimentoStatusApi on AtendimentoStatus {
+  /// Converte para o valor PascalCase esperado pela API.
+  /// Ex: `emDeslocamento` → `"EmDeslocamento"`
+  String toApiValue() => name[0].toUpperCase() + name.substring(1);
+}
+
+extension TipoValorApi on TipoValor {
+  /// Converte para o valor PascalCase esperado pela API.
+  /// Ex: `porKm` → `"PorKm"`
+  String toApiValue() => name[0].toUpperCase() + name.substring(1);
+}
+
+extension AtendimentoStatusParsing on String {
+  /// Parseia valor PascalCase da API para o enum local.
+  /// Ex: `"EmDeslocamento"` → `AtendimentoStatus.emDeslocamento`
+  AtendimentoStatus toAtendimentoStatus() =>
+      AtendimentoStatus.values.byName(this[0].toLowerCase() + substring(1));
+}
+
+extension TipoValorParsing on String {
+  /// Parseia valor PascalCase da API para o enum local.
+  /// Ex: `"PorKm"` → `TipoValor.porKm`
+  TipoValor toTipoValor() =>
+      TipoValor.values.byName(this[0].toLowerCase() + substring(1));
+}

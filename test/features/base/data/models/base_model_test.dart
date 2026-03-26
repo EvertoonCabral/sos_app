@@ -9,14 +9,14 @@ void main() {
     'id': 'base-001',
     'nome': 'Garagem SP',
     'local': {
-      'endereco_texto': 'Rua das Garagens, 100',
+      'enderecoTexto': 'Rua das Garagens, 100',
       'latitude': -23.5,
       'longitude': -46.6,
       'complemento': null,
     },
-    'is_principal': true,
-    'criado_em': '2026-03-01T00:00:00.000',
-    'sincronizado_em': null,
+    'isPrincipal': true,
+    'criadoEm': '2026-03-01T00:00:00.000',
+    'sincronizadoEm': null,
   };
 
   group('BaseModel', () {
@@ -35,7 +35,7 @@ void main() {
       expect(json['id'], 'base-001');
       expect(json['local'], isA<Map>());
       expect(json['local']['latitude'], -23.5);
-      expect(json['is_principal'], true);
+      expect(json['isPrincipal'], true);
     });
 
     test('toEntity deve converter para Base com LocalGeo', () {

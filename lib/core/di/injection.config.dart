@@ -107,7 +107,6 @@ extension GetItInjectableX on _i174.GetIt {
     final clienteModule = _$ClienteModule();
     final dashboardModule = _$DashboardModule();
     gh.singleton<_i982.AppDatabase>(() => databaseModule.appDatabase);
-    gh.singleton<_i361.Dio>(() => networkModule.dio);
     gh.singleton<_i895.Connectivity>(() => networkModule.connectivity);
     gh.singleton<_i558.FlutterSecureStorage>(() => networkModule.secureStorage);
     gh.lazySingleton<_i11.DistanceCalculator>(
@@ -115,8 +114,6 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i643.GeoService>(() => coreModule.geoService);
     gh.lazySingleton<_i513.GpsCollector>(
         () => rastreamentoModule.gpsCollector());
-    gh.lazySingleton<_i161.AuthRemoteDatasource>(
-        () => authModule.authRemoteDatasource(gh<_i361.Dio>()));
     gh.lazySingleton<_i992.AuthLocalDatasource>(
         () => authModule.authLocalDatasource(gh<_i558.FlutterSecureStorage>()));
     gh.lazySingleton<_i343.CalcularValorEstimado>(() =>
@@ -129,17 +126,12 @@ extension GetItInjectableX on _i174.GetIt {
         () => clienteModule.clienteLocalDatasource(gh<_i982.AppDatabase>()));
     gh.lazySingleton<_i145.SyncQueueDatasource>(
         () => coreModule.syncQueueDatasource(gh<_i982.AppDatabase>()));
-    gh.lazySingleton<_i556.RastreamentoLocalDatasource>(() => rastreamentoModule
-        .rastreamentoLocalDatasource(gh<_i982.AppDatabase>()));
     gh.lazySingleton<_i806.DashboardLocalDatasource>(() =>
         dashboardModule.dashboardLocalDatasource(gh<_i982.AppDatabase>()));
+    gh.lazySingleton<_i556.RastreamentoLocalDatasource>(() => rastreamentoModule
+        .rastreamentoLocalDatasource(gh<_i982.AppDatabase>()));
     gh.singleton<_i932.NetworkInfo>(
         () => _i865.NetworkInfoImpl(gh<_i895.Connectivity>()));
-    gh.lazySingleton<_i787.AuthRepository>(() => authModule.authRepository(
-          gh<_i161.AuthRemoteDatasource>(),
-          gh<_i992.AuthLocalDatasource>(),
-          gh<_i932.NetworkInfo>(),
-        ));
     gh.lazySingleton<_i846.AtendimentoRepository>(
         () => atendimentoModule.atendimentoRepository(
               gh<_i802.AtendimentoLocalDatasource>(),
@@ -147,10 +139,6 @@ extension GetItInjectableX on _i174.GetIt {
             ));
     gh.lazySingleton<_i665.DashboardRepository>(() => dashboardModule
         .dashboardRepository(gh<_i806.DashboardLocalDatasource>()));
-    gh.lazySingleton<_i446.AutenticarUsuario>(
-        () => authModule.autenticarUsuario(gh<_i787.AuthRepository>()));
-    gh.lazySingleton<_i209.ObterUsuarioLogado>(
-        () => authModule.obterUsuarioLogado(gh<_i787.AuthRepository>()));
     gh.lazySingleton<_i496.ObterResumoPeriodo>(() =>
         dashboardModule.obterResumoPeriodo(gh<_i665.DashboardRepository>()));
     gh.lazySingleton<_i70.ObterKmPorCliente>(() =>
@@ -162,11 +150,6 @@ extension GetItInjectableX on _i174.GetIt {
               gh<_i556.RastreamentoLocalDatasource>(),
               gh<_i145.SyncQueueDatasource>(),
             ));
-    gh.singleton<_i1069.HttpClient>(() => _i1069.HttpClient(
-          gh<_i361.Dio>(),
-          gh<_i558.FlutterSecureStorage>(),
-          gh<_i932.NetworkInfo>(),
-        ));
     gh.lazySingleton<_i354.CriarAtendimento>(
         () => atendimentoModule.criarAtendimento(
               gh<_i846.AtendimentoRepository>(),
@@ -181,16 +164,15 @@ extension GetItInjectableX on _i174.GetIt {
           gh<_i221.BaseLocalDatasource>(),
           gh<_i145.SyncQueueDatasource>(),
         ));
-    gh.lazySingleton<_i417.SyncManager>(() => coreModule.syncManager(
-          gh<_i145.SyncQueueDatasource>(),
-          gh<_i932.NetworkInfo>(),
-          gh<_i361.Dio>(),
-        ));
     gh.lazySingleton<_i228.CalcularValorReal>(
         () => rastreamentoModule.calcularValorReal(
               gh<_i22.RastreamentoRepository>(),
               gh<_i11.DistanceCalculator>(),
             ));
+    gh.singleton<_i361.Dio>(() => networkModule.dio(
+          gh<_i558.FlutterSecureStorage>(),
+          gh<_i932.NetworkInfo>(),
+        ));
     gh.lazySingleton<_i760.ListarAtendimentos>(() => atendimentoModule
         .listarAtendimentos(gh<_i846.AtendimentoRepository>()));
     gh.lazySingleton<_i824.AtualizarStatusAtendimento>(() => atendimentoModule
@@ -199,6 +181,13 @@ extension GetItInjectableX on _i174.GetIt {
         rastreamentoModule.registrarPonto(gh<_i22.RastreamentoRepository>()));
     gh.lazySingleton<_i906.ObterPercurso>(() =>
         rastreamentoModule.obterPercurso(gh<_i22.RastreamentoRepository>()));
+    gh.lazySingleton<_i161.AuthRemoteDatasource>(
+        () => authModule.authRemoteDatasource(gh<_i361.Dio>()));
+    gh.singleton<_i1069.HttpClient>(() => _i1069.HttpClient(
+          gh<_i361.Dio>(),
+          gh<_i558.FlutterSecureStorage>(),
+          gh<_i932.NetworkInfo>(),
+        ));
     gh.lazySingleton<_i829.CriarCliente>(
         () => clienteModule.criarCliente(gh<_i37.ClienteRepository>()));
     gh.lazySingleton<_i294.BuscarClientes>(
@@ -211,6 +200,20 @@ extension GetItInjectableX on _i174.GetIt {
         () => baseModule.listarBases(gh<_i789.BaseRepository>()));
     gh.lazySingleton<_i437.DefinirBasePrincipal>(
         () => baseModule.definirBasePrincipal(gh<_i789.BaseRepository>()));
+    gh.lazySingleton<_i417.SyncManager>(() => coreModule.syncManager(
+          gh<_i145.SyncQueueDatasource>(),
+          gh<_i932.NetworkInfo>(),
+          gh<_i361.Dio>(),
+        ));
+    gh.lazySingleton<_i787.AuthRepository>(() => authModule.authRepository(
+          gh<_i161.AuthRemoteDatasource>(),
+          gh<_i992.AuthLocalDatasource>(),
+          gh<_i932.NetworkInfo>(),
+        ));
+    gh.lazySingleton<_i446.AutenticarUsuario>(
+        () => authModule.autenticarUsuario(gh<_i787.AuthRepository>()));
+    gh.lazySingleton<_i209.ObterUsuarioLogado>(
+        () => authModule.obterUsuarioLogado(gh<_i787.AuthRepository>()));
     return this;
   }
 }

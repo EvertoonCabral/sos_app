@@ -56,10 +56,10 @@ void main() {
       final model = AtendimentoModel.fromEntity(entity);
       final json = model.toJson();
 
-      expect(json['ponto_de_saida'], isA<Map>());
-      expect(json['ponto_de_saida']['endereco_texto'], 'Rua A, 100');
-      expect(json['tipo_valor'], 'fixo');
-      expect(json['status'], 'rascunho');
+      expect(json['pontoDeSaida'], isA<Map>());
+      expect(json['pontoDeSaida']['enderecoTexto'], 'Rua A, 100');
+      expect(json['tipoValor'], 'Fixo');
+      expect(json['status'], 'Rascunho');
     });
 
     test('fromJson deve deserializar corretamente', () {
@@ -73,35 +73,73 @@ void main() {
       expect(restored.status, model.status);
     });
 
-    test('fromJson com LocalGeo como string JSON deve funcionar', () {
-      final localJson = jsonEncode({
-        'endereco_texto': 'Rua A, 100',
+    test('fromJson com payload camelCase deve funcionar', () {
+      final local = {
+        'enderecoTexto': 'Rua A, 100',
         'latitude': -23.55,
         'longitude': -46.63,
         'complemento': null,
-      });
+      };
 
       final json = {
         'id': 'at-1',
-        'cliente_id': 'c1',
-        'usuario_id': 'u1',
-        'ponto_de_saida': localJson,
-        'local_de_coleta': localJson,
-        'local_de_entrega': localJson,
-        'local_de_retorno': localJson,
-        'distancia_estimada_km': 25.0,
-        'valor_por_km': 5.0,
-        'valor_cobrado': 125.0,
-        'tipo_valor': 'fixo',
-        'status': 'rascunho',
+        'clienteId': 'c1',
+        'usuarioId': 'u1',
+        'pontoDeSaida': local,
+        'localDeColeta': local,
+        'localDeEntrega': local,
+        'localDeRetorno': local,
+        'distanciaEstimadaKm': 25.0,
+        'valorPorKm': 5.0,
+        'valorCobrado': 125.0,
+        'tipoValor': 'Fixo',
+        'status': 'Rascunho',
         'observacoes': 'Teste',
-        'criado_em': '2024-01-01T00:00:00.000',
-        'atualizado_em': '2024-01-01T00:00:00.000',
+        'criadoEm': '2024-01-01T00:00:00.000',
+        'atualizadoEm': '2024-01-01T00:00:00.000',
       };
 
       final model = AtendimentoModel.fromJson(json);
       expect(model.id, 'at-1');
-      expect(model.pontoDeSaidaJson, localJson);
+      expect(model.pontoDeSaidaJson, jsonEncode(local));
+    });
+
+    test('fromJson falha quando LocalGeo nao vem como objeto', () {
+      final json = {
+        'id': 'at-1',
+        'clienteId': 'c1',
+        'usuarioId': 'u1',
+        'pontoDeSaida': '{"enderecoTexto":"Rua A, 100"}',
+        'localDeColeta': {
+          'enderecoTexto': 'Rua A, 100',
+          'latitude': -23.55,
+          'longitude': -46.63,
+          'complemento': null
+        },
+        'localDeEntrega': {
+          'enderecoTexto': 'Rua A, 100',
+          'latitude': -23.55,
+          'longitude': -46.63,
+          'complemento': null
+        },
+        'localDeRetorno': {
+          'enderecoTexto': 'Rua A, 100',
+          'latitude': -23.55,
+          'longitude': -46.63,
+          'complemento': null
+        },
+        'distanciaEstimadaKm': 25.0,
+        'valorPorKm': 5.0,
+        'tipoValor': 'Fixo',
+        'status': 'Rascunho',
+        'criadoEm': '2024-01-01T00:00:00.000',
+        'atualizadoEm': '2024-01-01T00:00:00.000',
+      };
+
+      expect(
+        () => AtendimentoModel.fromJson(json),
+        throwsA(isA<TypeError>()),
+      );
     });
 
     test('fromEntity preserva timestamps opcionais quando não null', () {

@@ -33,35 +33,31 @@ class AtendimentoModel {
   factory AtendimentoModel.fromJson(Map<String, dynamic> json) {
     return AtendimentoModel(
       id: json['id'] as String,
-      clienteId: json['cliente_id'] as String,
-      usuarioId: json['usuario_id'] as String,
-      pontoDeSaidaJson: json['ponto_de_saida'] is String
-          ? json['ponto_de_saida'] as String
-          : jsonEncode(json['ponto_de_saida']),
-      localDeColetaJson: json['local_de_coleta'] is String
-          ? json['local_de_coleta'] as String
-          : jsonEncode(json['local_de_coleta']),
-      localDeEntregaJson: json['local_de_entrega'] is String
-          ? json['local_de_entrega'] as String
-          : jsonEncode(json['local_de_entrega']),
-      localDeRetornoJson: json['local_de_retorno'] is String
-          ? json['local_de_retorno'] as String
-          : jsonEncode(json['local_de_retorno']),
-      distanciaEstimadaKm: (json['distancia_estimada_km'] as num).toDouble(),
-      distanciaRealKm: (json['distancia_real_km'] as num?)?.toDouble(),
-      valorPorKm: (json['valor_por_km'] as num).toDouble(),
-      valorCobrado: (json['valor_cobrado'] as num?)?.toDouble(),
-      tipoValor: json['tipo_valor'] as String,
-      status: json['status'] as String,
+      clienteId: json['clienteId'] as String,
+      usuarioId: json['usuarioId'] as String,
+      pontoDeSaidaJson:
+          jsonEncode(json['pontoDeSaida'] as Map<String, dynamic>),
+      localDeColetaJson:
+          jsonEncode(json['localDeColeta'] as Map<String, dynamic>),
+      localDeEntregaJson:
+          jsonEncode(json['localDeEntrega'] as Map<String, dynamic>),
+      localDeRetornoJson:
+          jsonEncode(json['localDeRetorno'] as Map<String, dynamic>),
+      distanciaEstimadaKm: (json['distanciaEstimadaKm'] as num).toDouble(),
+      distanciaRealKm: (json['distanciaRealKm'] as num?)?.toDouble(),
+      valorPorKm: (json['valorPorKm'] as num).toDouble(),
+      valorCobrado: (json['valorCobrado'] as num?)?.toDouble(),
+      tipoValor: (json['tipoValor'] as String).toTipoValor().name,
+      status: (json['status'] as String).toAtendimentoStatus().name,
       observacoes: json['observacoes'] as String?,
-      criadoEm: json['criado_em'] as String,
-      atualizadoEm: json['atualizado_em'] as String,
-      iniciadoEm: json['iniciado_em'] as String?,
-      chegadaColetaEm: json['chegada_coleta_em'] as String?,
-      chegadaEntregaEm: json['chegada_entrega_em'] as String?,
-      inicioRetornoEm: json['inicio_retorno_em'] as String?,
-      concluidoEm: json['concluido_em'] as String?,
-      sincronizadoEm: json['sincronizado_em'] as String?,
+      criadoEm: json['criadoEm'] as String,
+      atualizadoEm: json['atualizadoEm'] as String,
+      iniciadoEm: json['iniciadoEm'] as String?,
+      chegadaColetaEm: json['chegadaColetaEm'] as String?,
+      chegadaEntregaEm: json['chegadaEntregaEm'] as String?,
+      inicioRetornoEm: json['inicioRetornoEm'] as String?,
+      concluidoEm: json['concluidoEm'] as String?,
+      sincronizadoEm: json['sincronizadoEm'] as String?,
     );
   }
 
@@ -117,27 +113,27 @@ class AtendimentoModel {
 
   Map<String, dynamic> toJson() => {
         'id': id,
-        'cliente_id': clienteId,
-        'usuario_id': usuarioId,
-        'ponto_de_saida': jsonDecode(pontoDeSaidaJson),
-        'local_de_coleta': jsonDecode(localDeColetaJson),
-        'local_de_entrega': jsonDecode(localDeEntregaJson),
-        'local_de_retorno': jsonDecode(localDeRetornoJson),
-        'distancia_estimada_km': distanciaEstimadaKm,
-        'distancia_real_km': distanciaRealKm,
-        'valor_por_km': valorPorKm,
-        'valor_cobrado': valorCobrado,
-        'tipo_valor': tipoValor,
-        'status': status,
+        'clienteId': clienteId,
+        'usuarioId': usuarioId,
+        'pontoDeSaida': jsonDecode(pontoDeSaidaJson),
+        'localDeColeta': jsonDecode(localDeColetaJson),
+        'localDeEntrega': jsonDecode(localDeEntregaJson),
+        'localDeRetorno': jsonDecode(localDeRetornoJson),
+        'distanciaEstimadaKm': distanciaEstimadaKm,
+        'distanciaRealKm': distanciaRealKm,
+        'valorPorKm': valorPorKm,
+        'valorCobrado': valorCobrado,
+        'tipoValor': _toApiEnum(tipoValor),
+        'status': _toApiEnum(status),
         'observacoes': observacoes,
-        'criado_em': criadoEm,
-        'atualizado_em': atualizadoEm,
-        'iniciado_em': iniciadoEm,
-        'chegada_coleta_em': chegadaColetaEm,
-        'chegada_entrega_em': chegadaEntregaEm,
-        'inicio_retorno_em': inicioRetornoEm,
-        'concluido_em': concluidoEm,
-        'sincronizado_em': sincronizadoEm,
+        'criadoEm': criadoEm,
+        'atualizadoEm': atualizadoEm,
+        'iniciadoEm': iniciadoEm,
+        'chegadaColetaEm': chegadaColetaEm,
+        'chegadaEntregaEm': chegadaEntregaEm,
+        'inicioRetornoEm': inicioRetornoEm,
+        'concluidoEm': concluidoEm,
+        'sincronizadoEm': sincronizadoEm,
       };
 
   Atendimento toEntity() {
@@ -172,7 +168,7 @@ class AtendimentoModel {
   }
 
   static String _encodeLocalGeo(LocalGeo local) => jsonEncode({
-        'endereco_texto': local.enderecoTexto,
+        'enderecoTexto': local.enderecoTexto,
         'latitude': local.latitude,
         'longitude': local.longitude,
         'complemento': local.complemento,
@@ -181,10 +177,14 @@ class AtendimentoModel {
   static LocalGeo _decodeLocalGeo(String json) {
     final map = jsonDecode(json) as Map<String, dynamic>;
     return LocalGeo(
-      enderecoTexto: map['endereco_texto'] as String,
+      enderecoTexto: map['enderecoTexto'] as String,
       latitude: (map['latitude'] as num).toDouble(),
       longitude: (map['longitude'] as num).toDouble(),
       complemento: map['complemento'] as String?,
     );
   }
+
+  /// Converte camelCase interno para PascalCase da API. Ex: emDeslocamento → EmDeslocamento
+  static String _toApiEnum(String camelName) =>
+      camelName[0].toUpperCase() + camelName.substring(1);
 }

@@ -18,9 +18,9 @@ class UsuarioModel {
         telefone: json['telefone'] as String,
         email: json['email'] as String,
         role: json['role'] as String,
-        valorPorKmDefault: (json['valor_por_km_default'] as num).toDouble(),
-        criadoEm: json['criado_em'] as String,
-        sincronizadoEm: json['sincronizado_em'] as String?,
+        valorPorKmDefault: (json['valorPorKmDefault'] as num).toDouble(),
+        criadoEm: json['criadoEm'] as String,
+        sincronizadoEm: json['sincronizadoEm'] as String?,
       );
 
   factory UsuarioModel.fromEntity(Usuario entity) => UsuarioModel(
@@ -49,9 +49,9 @@ class UsuarioModel {
         'telefone': telefone,
         'email': email,
         'role': role,
-        'valor_por_km_default': valorPorKmDefault,
-        'criado_em': criadoEm,
-        'sincronizado_em': sincronizadoEm,
+        'valorPorKmDefault': valorPorKmDefault,
+        'criadoEm': criadoEm,
+        'sincronizadoEm': sincronizadoEm,
       };
 
   Usuario toEntity() => Usuario(

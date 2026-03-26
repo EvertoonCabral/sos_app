@@ -24,10 +24,10 @@ void main() {
   late MockDio mockDio;
 
   final clientePayload = {'id': 'c1', 'nome': 'João', 'telefone': '11999'};
-  final atendimentoPayload = {'id': 'at-1', 'cliente_id': 'c1'};
+  final atendimentoPayload = {'id': 'at-1', 'clienteId': 'c1'};
   final pontoPayload = {
     'id': 'p-1',
-    'atendimento_id': 'at-1',
+    'atendimentoId': 'at-1',
     'latitude': -23.55,
     'longitude': -46.63,
   };

@@ -19,16 +19,16 @@ class BaseModel {
         localJson: json['local'] is String
             ? json['local'] as String
             : jsonEncode(json['local']),
-        isPrincipal: json['is_principal'] as bool? ?? false,
-        criadoEm: json['criado_em'] as String,
-        sincronizadoEm: json['sincronizado_em'] as String?,
+        isPrincipal: json['isPrincipal'] as bool? ?? false,
+        criadoEm: json['criadoEm'] as String,
+        sincronizadoEm: json['sincronizadoEm'] as String?,
       );
 
   factory BaseModel.fromEntity(Base entity) => BaseModel(
         id: entity.id,
         nome: entity.nome,
         localJson: jsonEncode({
-          'endereco_texto': entity.local.enderecoTexto,
+          'enderecoTexto': entity.local.enderecoTexto,
           'latitude': entity.local.latitude,
           'longitude': entity.local.longitude,
           'complemento': entity.local.complemento,
@@ -49,15 +49,15 @@ class BaseModel {
         'id': id,
         'nome': nome,
         'local': jsonDecode(localJson),
-        'is_principal': isPrincipal,
-        'criado_em': criadoEm,
-        'sincronizado_em': sincronizadoEm,
+        'isPrincipal': isPrincipal,
+        'criadoEm': criadoEm,
+        'sincronizadoEm': sincronizadoEm,
       };
 
   Base toEntity() {
     final map = jsonDecode(localJson) as Map<String, dynamic>;
     final local = LocalGeo(
-      enderecoTexto: map['endereco_texto'] as String,
+      enderecoTexto: map['enderecoTexto'] as String,
       latitude: (map['latitude'] as num).toDouble(),
       longitude: (map['longitude'] as num).toDouble(),
       complemento: map['complemento'] as String?,
