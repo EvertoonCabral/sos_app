@@ -100,5 +100,12 @@ void main() {
         () => mockBloc.add(const DefinirBasePrincipalEvent('base-002')),
       ).called(1);
     });
+
+    testWidgets('deve exibir FAB de adicionar base', (tester) async {
+      when(() => mockBloc.state).thenReturn(const BaseListaCarregada([]));
+      await tester.pumpWidget(buildPage());
+
+      expect(find.byKey(const Key('addBaseButton')), findsOneWidget);
+    });
   });
 }
