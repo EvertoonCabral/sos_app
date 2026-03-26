@@ -2,12 +2,14 @@ import '../../../../core/error/failures.dart';
 import '../entities/atendimento.dart';
 import '../entities/atendimento_enums.dart';
 import '../repositories/atendimento_repository.dart';
+import '../../../rastreamento/domain/usecases/calcular_valor_real.dart';
 
 /// RN-016 a RN-022B: valida transições de status e atualiza timestamps.
 class AtualizarStatusAtendimento {
-  AtualizarStatusAtendimento(this._repository);
+  AtualizarStatusAtendimento(this._repository, this._calcularValorReal);
 
   final AtendimentoRepository _repository;
+  final CalcularValorReal _calcularValorReal;
 
   Future<Atendimento> call({
     required Atendimento atendimento,
@@ -42,6 +44,16 @@ class AtualizarStatusAtendimento {
         break;
       case AtendimentoStatus.concluido:
         atualizado = atualizado.copyWith(concluidoEm: now);
+        if (atendimento.tipoValor == TipoValor.porKm) {
+          final valorCobrado = await _calcularValorReal(
+            atendimentoId: atendimento.id,
+            valorPorKm: atendimento.valorPorKm,
+          );
+          atualizado = atualizado.copyWith(
+            distanciaRealKm: valorCobrado / atendimento.valorPorKm,
+            valorCobrado: valorCobrado,
+          );
+        }
         break;
       default:
         break;

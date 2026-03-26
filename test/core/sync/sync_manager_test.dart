@@ -9,7 +9,14 @@ import 'package:sos_app/core/constants/app_constants.dart';
 import 'package:sos_app/core/database/app_database.dart';
 import 'package:sos_app/core/network/network_info.dart';
 import 'package:sos_app/core/sync/sync_manager.dart';
+import 'package:sos_app/core/sync/sync_cursor_datasource.dart';
 import 'package:sos_app/core/sync/sync_queue_datasource.dart';
+import 'package:sos_app/features/atendimento/data/datasources/atendimento_local_datasource.dart';
+import 'package:sos_app/features/auth/data/datasources/usuario_local_datasource.dart';
+import 'package:sos_app/features/auth/data/models/usuario_model.dart';
+import 'package:sos_app/features/base/data/datasources/base_local_datasource.dart';
+import 'package:sos_app/features/cliente/data/datasources/cliente_local_datasource.dart';
+import 'package:sos_app/features/cliente/data/models/cliente_model.dart';
 
 class MockSyncQueue extends Mock implements SyncQueueDatasource {}
 
@@ -17,11 +24,29 @@ class MockNetworkInfo extends Mock implements NetworkInfo {}
 
 class MockDio extends Mock implements Dio {}
 
+class MockClienteLocalDatasource extends Mock
+    implements ClienteLocalDatasource {}
+
+class MockBaseLocalDatasource extends Mock implements BaseLocalDatasource {}
+
+class MockAtendimentoLocalDatasource extends Mock
+    implements AtendimentoLocalDatasource {}
+
+class MockUsuarioLocalDatasource extends Mock
+    implements UsuarioLocalDatasource {}
+
+class MockSyncCursorDatasource extends Mock implements SyncCursorDatasource {}
+
 void main() {
   late SyncManager syncManager;
   late MockSyncQueue mockSyncQueue;
   late MockNetworkInfo mockNetworkInfo;
   late MockDio mockDio;
+  late MockClienteLocalDatasource mockClienteLocalDatasource;
+  late MockBaseLocalDatasource mockBaseLocalDatasource;
+  late MockAtendimentoLocalDatasource mockAtendimentoLocalDatasource;
+  late MockUsuarioLocalDatasource mockUsuarioLocalDatasource;
+  late MockSyncCursorDatasource mockSyncCursorDatasource;
 
   final clientePayload = {'id': 'c1', 'nome': 'João', 'telefone': '11999'};
   final atendimentoPayload = {'id': 'at-1', 'clienteId': 'c1'};
@@ -59,15 +84,67 @@ void main() {
     mockSyncQueue = MockSyncQueue();
     mockNetworkInfo = MockNetworkInfo();
     mockDio = MockDio();
+    mockClienteLocalDatasource = MockClienteLocalDatasource();
+    mockBaseLocalDatasource = MockBaseLocalDatasource();
+    mockAtendimentoLocalDatasource = MockAtendimentoLocalDatasource();
+    mockUsuarioLocalDatasource = MockUsuarioLocalDatasource();
+    mockSyncCursorDatasource = MockSyncCursorDatasource();
 
     syncManager = SyncManager(
       syncQueue: mockSyncQueue,
       networkInfo: mockNetworkInfo,
       dio: mockDio,
+      clienteLocalDatasource: mockClienteLocalDatasource,
+      baseLocalDatasource: mockBaseLocalDatasource,
+      atendimentoLocalDatasource: mockAtendimentoLocalDatasource,
+      usuarioLocalDatasource: mockUsuarioLocalDatasource,
+      syncCursorDatasource: mockSyncCursorDatasource,
     );
 
     registerFallbackValue(RequestOptions(path: ''));
     registerFallbackValue(Duration.zero);
+    registerFallbackValue(DateTime(2026));
+    registerFallbackValue(
+      const ClienteModel(
+        id: 'c-fallback',
+        nome: 'Cliente',
+        telefone: '11999999999',
+        criadoEm: '2026-03-26T00:00:00.000Z',
+        atualizadoEm: '2026-03-26T00:00:00.000Z',
+      ),
+    );
+    registerFallbackValue(
+      const UsuarioModel(
+        id: 'u-fallback',
+        nome: 'Usuario',
+        telefone: '11999999999',
+        email: 'fallback@test.com',
+        role: 'operador',
+        valorPorKmDefault: 5.0,
+        criadoEm: '2026-03-26T00:00:00.000Z',
+      ),
+    );
+    when(() => mockSyncCursorDatasource.obterUltimoPull())
+        .thenAnswer((_) async => null);
+    when(() => mockSyncCursorDatasource.salvarUltimoPull(any()))
+        .thenAnswer((_) async {});
+    when(() => mockSyncQueue.obterTodos()).thenAnswer((_) async => []);
+    when(() => mockDio.get(
+          '/sync/pull',
+          queryParameters: any(named: 'queryParameters'),
+        )).thenAnswer(
+      (_) async => Response(
+        requestOptions: RequestOptions(path: '/sync/pull'),
+        statusCode: 200,
+        data: {
+          'usuarios': [],
+          'clientes': [],
+          'bases': [],
+          'atendimentos': [],
+          'sincronizadoEm': '2026-03-26T12:00:00.000Z',
+        },
+      ),
+    );
   });
 
   tearDown(() => syncManager.dispose());
@@ -116,6 +193,103 @@ void main() {
         final result = await syncManager.processar();
 
         expect(result, 0);
+        verify(() => mockDio.get(
+              '/sync/pull',
+              queryParameters: {
+                'desde': '1970-01-01T00:00:00.000Z',
+              },
+            )).called(1);
+      });
+
+      test('aplica pull sync e não sobrescreve entidade pendente', () async {
+        final clienteServidor = {
+          'id': 'c-server',
+          'nome': 'Cliente Server',
+          'telefone': '11999990000',
+          'documento': null,
+          'enderecoDefault': null,
+          'criadoEm': '2026-03-26T11:00:00.000Z',
+          'atualizadoEm': '2026-03-26T12:00:00.000Z',
+          'sincronizadoEm': '2026-03-26T12:00:00.000Z',
+        };
+        final clientePendenteServidor = {
+          'id': 'c-pendente',
+          'nome': 'Não Deve Entrar',
+          'telefone': '11911112222',
+          'documento': null,
+          'enderecoDefault': null,
+          'criadoEm': '2026-03-26T10:00:00.000Z',
+          'atualizadoEm': '2026-03-26T12:00:00.000Z',
+          'sincronizadoEm': '2026-03-26T12:00:00.000Z',
+        };
+
+        when(() => mockNetworkInfo.isConnected).thenAnswer((_) async => true);
+        when(() => mockSyncQueue.obterPendentes(maxRetries: syncMaxRetries))
+            .thenAnswer((_) async => []);
+        when(() => mockSyncQueue.obterTodos()).thenAnswer(
+          (_) async => [
+            makeEntry(
+              id: 'sq-local',
+              entidade: 'cliente',
+              operacao: 'update',
+              payload: {
+                'id': 'c-pendente',
+                'nome': 'Local',
+                'telefone': '11900000000',
+              },
+            ),
+          ],
+        );
+        when(() => mockDio.get(
+              '/sync/pull',
+              queryParameters: any(named: 'queryParameters'),
+            )).thenAnswer(
+          (_) async => Response(
+            requestOptions: RequestOptions(path: '/sync/pull'),
+            statusCode: 200,
+            data: {
+              'usuarios': [
+                {
+                  'id': 'u-1',
+                  'nome': 'Operador',
+                  'telefone': '11999999999',
+                  'email': 'op@test.com',
+                  'role': 'operador',
+                  'valorPorKmDefault': 5.0,
+                  'criadoEm': '2026-03-26T09:00:00.000Z',
+                  'sincronizadoEm': '2026-03-26T12:00:00.000Z',
+                },
+              ],
+              'clientes': [clienteServidor, clientePendenteServidor],
+              'bases': [],
+              'atendimentos': [],
+              'sincronizadoEm': '2026-03-26T12:00:00.000Z',
+            },
+          ),
+        );
+        when(() => mockUsuarioLocalDatasource.obterPorId('u-1'))
+            .thenAnswer((_) async => null);
+        when(() => mockUsuarioLocalDatasource.inserir(any()))
+            .thenAnswer((_) async {});
+        when(() => mockClienteLocalDatasource.obterPorId('c-server'))
+            .thenAnswer((_) async => null);
+        when(() => mockClienteLocalDatasource.inserir(any()))
+            .thenAnswer((_) async {});
+        when(() => mockClienteLocalDatasource.obterPorId('c-pendente'))
+            .thenAnswer((_) async => null);
+        when(() => mockSyncQueue.contarPendentes()).thenAnswer((_) async => 0);
+        when(() => mockSyncQueue.contarComErro(maxRetries: syncMaxRetries))
+            .thenAnswer((_) async => 0);
+
+        final result = await syncManager.processar();
+
+        expect(result, 0);
+        verify(() => mockUsuarioLocalDatasource.inserir(any())).called(1);
+        verify(() => mockClienteLocalDatasource.inserir(any())).called(1);
+        verifyNever(() => mockClienteLocalDatasource.obterPorId('c-pendente'));
+        verify(() => mockSyncCursorDatasource.salvarUltimoPull(
+              DateTime.parse('2026-03-26T12:00:00.000Z'),
+            )).called(1);
       });
 
       test('sincroniza cliente create com sucesso', () async {

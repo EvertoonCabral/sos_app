@@ -4,9 +4,18 @@ import 'dart:math';
 
 import 'package:dio/dio.dart';
 
+import '../../features/atendimento/data/datasources/atendimento_local_datasource.dart';
+import '../../features/atendimento/data/models/atendimento_model.dart';
+import '../../features/auth/data/datasources/usuario_local_datasource.dart';
+import '../../features/auth/data/models/usuario_model.dart';
+import '../../features/base/data/datasources/base_local_datasource.dart';
+import '../../features/base/data/models/base_model.dart';
+import '../../features/cliente/data/datasources/cliente_local_datasource.dart';
+import '../../features/cliente/data/models/cliente_model.dart';
 import '../constants/app_constants.dart';
 import '../database/app_database.dart';
 import '../network/network_info.dart';
+import 'sync_cursor_datasource.dart';
 import 'sync_queue_datasource.dart';
 
 /// Status geral da sincronização.
@@ -34,11 +43,24 @@ class SyncManager {
     required this.syncQueue,
     required this.networkInfo,
     required this.dio,
+    required this.clienteLocalDatasource,
+    required this.baseLocalDatasource,
+    required this.atendimentoLocalDatasource,
+    required this.usuarioLocalDatasource,
+    required this.syncCursorDatasource,
   });
 
   final SyncQueueDatasource syncQueue;
   final NetworkInfo networkInfo;
   final Dio dio;
+  final ClienteLocalDatasource clienteLocalDatasource;
+  final BaseLocalDatasource baseLocalDatasource;
+  final AtendimentoLocalDatasource atendimentoLocalDatasource;
+  final UsuarioLocalDatasource usuarioLocalDatasource;
+  final SyncCursorDatasource syncCursorDatasource;
+
+  static final DateTime _cursorInicial =
+      DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
 
   StreamSubscription<bool>? _connectivitySubscription;
   bool _isProcessing = false;
@@ -146,6 +168,12 @@ class SyncManager {
           final backoff = _calcularBackoff(item.tentativas);
           await syncQueue.incrementarTentativas(item.id, backoff: backoff);
         }
+      }
+
+      try {
+        await _sincronizarPull();
+      } catch (_) {
+        // Pull sync não deve descartar pushes já concluídos.
       }
     } finally {
       _isProcessing = false;
@@ -277,5 +305,129 @@ class SyncManager {
       default:
         throw UnsupportedError('Operação desconhecida para base: $operacao');
     }
+  }
+
+  Future<void> _sincronizarPull() async {
+    final desde =
+        await syncCursorDatasource.obterUltimoPull() ?? _cursorInicial;
+    final response = await dio.get(
+      '/sync/pull',
+      queryParameters: {'desde': desde.toUtc().toIso8601String()},
+    );
+
+    final data = response.data;
+    if (data is! Map<String, dynamic>) {
+      throw StateError('Resposta inválida de /sync/pull');
+    }
+
+    final idsPendentes = await _obterIdsPendentesPorEntidade();
+
+    await _aplicarUsuarios(
+        data['usuarios'], idsPendentes['usuario'] ?? const {});
+    await _aplicarClientes(
+        data['clientes'], idsPendentes['cliente'] ?? const {});
+    await _aplicarBases(data['bases'], idsPendentes['base'] ?? const {});
+    await _aplicarAtendimentos(
+      data['atendimentos'],
+      idsPendentes['atendimento'] ?? const {},
+    );
+
+    final sincronizadoEm = data['sincronizadoEm'] as String?;
+    if (sincronizadoEm != null && sincronizadoEm.isNotEmpty) {
+      final parsed = DateTime.tryParse(sincronizadoEm);
+      if (parsed != null) {
+        await syncCursorDatasource.salvarUltimoPull(parsed);
+      }
+    }
+  }
+
+  Future<Map<String, Set<String>>> _obterIdsPendentesPorEntidade() async {
+    final itens = await syncQueue.obterTodos();
+    final ids = <String, Set<String>>{};
+
+    for (final item in itens) {
+      final payload = jsonDecode(item.payload);
+      if (payload is! Map<String, dynamic>) {
+        continue;
+      }
+      final id = payload['id'];
+      if (id is! String || id.isEmpty) {
+        continue;
+      }
+      ids.putIfAbsent(item.entidade, () => <String>{}).add(id);
+    }
+
+    return ids;
+  }
+
+  Future<void> _aplicarUsuarios(dynamic raw, Set<String> idsPendentes) async {
+    for (final json in _asMapList(raw)) {
+      final model = UsuarioModel.fromJson(json);
+      if (idsPendentes.contains(model.id)) {
+        continue;
+      }
+      final existente = await usuarioLocalDatasource.obterPorId(model.id);
+      if (existente == null) {
+        await usuarioLocalDatasource.inserir(model);
+      } else {
+        await usuarioLocalDatasource.atualizar(model);
+      }
+    }
+  }
+
+  Future<void> _aplicarClientes(dynamic raw, Set<String> idsPendentes) async {
+    for (final json in _asMapList(raw)) {
+      final model = ClienteModel.fromJson(json);
+      if (idsPendentes.contains(model.id)) {
+        continue;
+      }
+      final existente = await clienteLocalDatasource.obterPorId(model.id);
+      if (existente == null) {
+        await clienteLocalDatasource.inserir(model);
+      } else {
+        await clienteLocalDatasource.atualizar(model);
+      }
+    }
+  }
+
+  Future<void> _aplicarBases(dynamic raw, Set<String> idsPendentes) async {
+    for (final json in _asMapList(raw)) {
+      final model = BaseModel.fromJson(json);
+      if (idsPendentes.contains(model.id)) {
+        continue;
+      }
+      final existente = await baseLocalDatasource.obterPorId(model.id);
+      if (existente == null) {
+        await baseLocalDatasource.inserir(model);
+      } else {
+        await baseLocalDatasource.atualizar(model);
+      }
+    }
+  }
+
+  Future<void> _aplicarAtendimentos(
+    dynamic raw,
+    Set<String> idsPendentes,
+  ) async {
+    for (final json in _asMapList(raw)) {
+      final model = AtendimentoModel.fromJson(json);
+      if (idsPendentes.contains(model.id)) {
+        continue;
+      }
+      final existente = await atendimentoLocalDatasource.obterPorId(model.id);
+      if (existente == null) {
+        await atendimentoLocalDatasource.inserir(model);
+      } else {
+        await atendimentoLocalDatasource.atualizar(model);
+      }
+    }
+  }
+
+  List<Map<String, dynamic>> _asMapList(dynamic raw) {
+    if (raw is! List) {
+      return const [];
+    }
+
+    return raw.whereType<Map<String, dynamic>>().toList();
   }
 }

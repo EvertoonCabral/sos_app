@@ -43,6 +43,12 @@ class SyncQueueDatasource {
         .get();
   }
 
+  Future<List<SyncQueueEntry>> obterTodos() {
+    return (_db.select(_db.syncQueueTable)
+          ..orderBy([(t) => OrderingTerm.asc(t.criadoEm)]))
+        .get();
+  }
+
   /// Remove um item da fila (sincronizado com sucesso).
   Future<void> remover(String id) async {
     await (_db.delete(_db.syncQueueTable)..where((t) => t.id.equals(id))).go();

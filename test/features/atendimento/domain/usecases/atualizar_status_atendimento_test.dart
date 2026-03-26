@@ -7,12 +7,16 @@ import 'package:sos_app/features/atendimento/domain/entities/atendimento.dart';
 import 'package:sos_app/features/atendimento/domain/entities/atendimento_enums.dart';
 import 'package:sos_app/features/atendimento/domain/repositories/atendimento_repository.dart';
 import 'package:sos_app/features/atendimento/domain/usecases/atualizar_status_atendimento.dart';
+import 'package:sos_app/features/rastreamento/domain/usecases/calcular_valor_real.dart';
 
 class MockAtendimentoRepository extends Mock implements AtendimentoRepository {}
+
+class MockCalcularValorReal extends Mock implements CalcularValorReal {}
 
 void main() {
   late AtualizarStatusAtendimento usecase;
   late MockAtendimentoRepository mockRepository;
+  late MockCalcularValorReal mockCalcularValorReal;
 
   const local = LocalGeo(
     enderecoTexto: 'Local',
@@ -42,9 +46,19 @@ void main() {
 
   setUp(() {
     mockRepository = MockAtendimentoRepository();
-    usecase = AtualizarStatusAtendimento(mockRepository);
+    mockCalcularValorReal = MockCalcularValorReal();
+    usecase = AtualizarStatusAtendimento(
+      mockRepository,
+      mockCalcularValorReal,
+    );
 
     registerFallbackValue(buildAtendimento());
+    when(
+      () => mockCalcularValorReal(
+        atendimentoId: any(named: 'atendimentoId'),
+        valorPorKm: any(named: 'valorPorKm'),
+      ),
+    ).thenAnswer((_) async => 150.0);
   });
 
   group('AtualizarStatusAtendimento', () {
@@ -116,6 +130,35 @@ void main() {
 
       expect(result.status, AtendimentoStatus.concluido);
       expect(result.concluidoEm, isNotNull);
+      expect(result.distanciaRealKm, 30.0);
+      expect(result.valorCobrado, 150.0);
+      verify(
+        () => mockCalcularValorReal(
+          atendimentoId: 'at-1',
+          valorPorKm: 5.0,
+        ),
+      ).called(1);
+    });
+
+    test('conclusão fixa não recalcula valor real', () async {
+      when(() => mockRepository.atualizarStatus(any())).thenAnswer(
+        (inv) async => inv.positionalArguments[0] as Atendimento,
+      );
+
+      final result = await usecase(
+        atendimento: buildAtendimento(
+          status: AtendimentoStatus.retornando,
+        ).copyWith(tipoValor: TipoValor.fixo),
+        novoStatus: AtendimentoStatus.concluido,
+      );
+
+      expect(result.status, AtendimentoStatus.concluido);
+      verifyNever(
+        () => mockCalcularValorReal(
+          atendimentoId: any(named: 'atendimentoId'),
+          valorPorKm: any(named: 'valorPorKm'),
+        ),
+      );
     });
 
     test('rascunho → cancelado deve ser permitido', () async {

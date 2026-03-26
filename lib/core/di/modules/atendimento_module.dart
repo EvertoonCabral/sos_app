@@ -7,6 +7,7 @@ import '../../../features/atendimento/domain/usecases/atualizar_status_atendimen
 import '../../../features/atendimento/domain/usecases/calcular_valor_estimado.dart';
 import '../../../features/atendimento/domain/usecases/criar_atendimento.dart';
 import '../../../features/atendimento/domain/usecases/listar_atendimentos.dart';
+import '../../../features/rastreamento/domain/usecases/calcular_valor_real.dart';
 import '../../database/app_database.dart';
 import '../../sync/sync_queue_datasource.dart';
 import '../../utils/distance_calculator.dart';
@@ -41,8 +42,9 @@ abstract class AtendimentoModule {
   @lazySingleton
   AtualizarStatusAtendimento atualizarStatusAtendimento(
     AtendimentoRepository repository,
+    CalcularValorReal calcularValorReal,
   ) =>
-      AtualizarStatusAtendimento(repository);
+      AtualizarStatusAtendimento(repository, calcularValorReal);
 
   @lazySingleton
   CalcularValorEstimado calcularValorEstimado(
