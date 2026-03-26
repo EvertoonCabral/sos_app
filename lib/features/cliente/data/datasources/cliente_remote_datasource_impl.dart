@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../../../../core/error/exceptions.dart';
+import '../../../../core/network/paged_result.dart';
 import '../models/cliente_model.dart';
 import 'cliente_remote_datasource.dart';
 
@@ -44,15 +45,24 @@ class ClienteRemoteDatasourceImpl implements ClienteRemoteDatasource {
   }
 
   @override
-  Future<List<ClienteModel>> buscar(String query) async {
+  Future<List<ClienteModel>> buscar(
+    String query, {
+    int page = 1,
+    int pageSize = 20,
+  }) async {
     try {
-      final response = await _dio.get<List<dynamic>>(
+      final response = await _dio.get<Map<String, dynamic>>(
         '/clientes',
-        queryParameters: {'q': query},
+        queryParameters: {
+          if (query.trim().isNotEmpty) 'q': query.trim(),
+          'page': page,
+          'pageSize': pageSize,
+        },
       );
-      return response.data!
-          .map((e) => ClienteModel.fromJson(e as Map<String, dynamic>))
-          .toList();
+      return PagedResult.fromJson(
+        response.data!,
+        ClienteModel.fromJson,
+      ).items;
     } on DioException catch (e) {
       throw ServerException(
         message: e.response?.data?['message']?.toString() ??

@@ -25,7 +25,7 @@ class BaseRemoteDatasourceImpl implements BaseRemoteDatasource {
 
   @override
   Future<BaseModel> definirPrincipal(String id) async {
-    final response = await _dio.put('/bases/$id/principal');
+    final response = await _dio.post('/bases/$id/principal');
     return BaseModel.fromJson(response.data as Map<String, dynamic>);
   }
 }

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../../../../core/network/paged_result.dart';
 import '../models/atendimento_model.dart';
 import 'atendimento_remote_datasource.dart';
 
@@ -15,12 +16,23 @@ class AtendimentoRemoteDatasourceImpl implements AtendimentoRemoteDatasource {
   }
 
   @override
-  Future<List<AtendimentoModel>> listarTodos() async {
-    final response = await _dio.get('/atendimentos');
-    final list = response.data as List;
-    return list
-        .map((e) => AtendimentoModel.fromJson(e as Map<String, dynamic>))
-        .toList();
+  Future<List<AtendimentoModel>> listarTodos({
+    String? status,
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/atendimentos',
+      queryParameters: {
+        if (status != null && status.isNotEmpty) 'status': status,
+        'page': page,
+        'pageSize': pageSize,
+      },
+    );
+    return PagedResult.fromJson(
+      response.data!,
+      AtendimentoModel.fromJson,
+    ).items;
   }
 
   @override

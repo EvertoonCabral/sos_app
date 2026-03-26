@@ -15,8 +15,12 @@ abstract class ClienteRemoteDatasource {
   /// PUT /clientes/:id
   Future<ClienteModel> atualizar(ClienteModel model);
 
-  /// GET /clientes?q=...
-  Future<List<ClienteModel>> buscar(String query);
+  /// GET /clientes?q=...&page=...&pageSize=...
+  Future<List<ClienteModel>> buscar(
+    String query, {
+    int page = 1,
+    int pageSize = 20,
+  });
 
   /// GET /clientes/:id
   Future<ClienteModel> obterPorId(String id);

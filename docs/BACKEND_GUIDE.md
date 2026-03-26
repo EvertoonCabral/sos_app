@@ -17,13 +17,14 @@
 7. [Commands (CQRS — Escrita)](#7-commands-cqrs--escrita)
 8. [Queries (CQRS — Leitura)](#8-queries-cqrs--leitura)
 9. [Generic Repository e Unit of Work](#9-generic-repository-e-unit-of-work)
-10. [Sincronização Offline-First](#10-sincronização-offline-first)
-11. [Autenticação e Autorização](#11-autenticação-e-autorização)
-12. [Regras de Negócio (RN)](#12-regras-de-negócio-rn)
-13. [Validações (FluentValidation)](#13-validações-fluentvalidation)
-14. [Migrations EF Core](#14-migrations-ef-core)
-15. [Testes](#15-testes)
-16. [Deploy e Configuração](#16-deploy-e-configuração)
+10. [Paginação](#10-paginação)
+11. [Sincronização Offline-First](#11-sincronização-offline-first)
+12. [Autenticação e Autorização](#12-autenticação-e-autorização)
+13. [Regras de Negócio (RN)](#13-regras-de-negócio-rn)
+14. [Validações (FluentValidation)](#14-validações-fluentvalidation)
+15. [Migrations EF Core](#15-migrations-ef-core)
+16. [Testes](#16-testes)
+17. [Deploy e Configuração](#17-deploy-e-configuração)
 
 ---
 
@@ -430,21 +431,20 @@ Mapeado como **Owned Type** no EF Core — colunas ficam na tabela pai com prefi
 │ SenhaHash   │       │ TipoValor        │       │ Documento?         │
 │ Role        │       │ ValorPorKm       │       │ EnderecoDefault?   │
 │ ValorPorKm  │       │ ValorCobrado?    │       │ CriadoEm           │
-│ CriadoEm    │       │ DistEstimada     │       │ AtualizadoEm       │
-└─────────────┘       │ DistReal?        │       │ SincronizadoEm?    │
+└─────────────┘       │ DistânciaEstimada │       │ AtualizadoEm       │
+                      │ DistânciaReal?    │       │ SincronizadoEm?    │
                       │ PontoDeSaida_*   │       └────────────────────┘
                       │ LocalDeColeta_*  │
                       │ LocalDeEntrega_* │       ┌────────────────────┐
                       │ LocalDeRetorno_* │       │    Bases           │
-                      │ Observacoes?     │       ├────────────────────┤
+                      │ Observações?     │       ├────────────────────┤
                       │ IniciadoEm?      │       │ Id (PK)            │
                       │ ChegadaColeta?   │       │ Nome               │
                       │ ChegadaEntrega?  │       │ Local_*            │
                       │ InicioRetorno?   │       │ IsPrincipal        │
                       │ ConcluidoEm?     │       │ CriadoEm           │
                       │ CriadoEm         │       │ AtualizadoEm       │
-                      │ AtualizadoEm     │       │ SincronizadoEm?    │
-                      │ SincronizadoEm?  │       └────────────────────┘
+                      │ SincronizadoEm?  │       │ SincronizadoEm?    │
                       └────────┬─────────┘
                                │ 1:N
                       ┌────────▼─────────┐
@@ -746,23 +746,23 @@ public record SyncPullResponse(
 
 ### 6.2 Clientes
 
-| Método | Rota                      | Descrição                | Auth |
-| ------ | ------------------------- | ------------------------ | ---- |
-| POST   | `/api/clientes`           | Criar cliente            | Sim  |
-| PUT    | `/api/clientes/{id}`      | Atualizar cliente        | Sim  |
-| GET    | `/api/clientes/{id}`      | Obter por ID             | Sim  |
-| GET    | `/api/clientes?q={query}` | Buscar por nome/telefone | Sim  |
-| GET    | `/api/clientes`           | Listar todos             | Sim  |
+| Método | Rota                                              | Descrição                       | Auth | Paginado |
+| ------ | ------------------------------------------------- | ------------------------------- | ---- | -------- |
+| POST   | `/api/clientes`                                   | Criar cliente                   | Sim  | —        |
+| PUT    | `/api/clientes/{id}`                              | Atualizar cliente                | Sim  | —        |
+| GET    | `/api/clientes/{id}`                              | Obter por ID                    | Sim  | —        |
+| GET    | `/api/clientes?q={query}&page={p}&pageSize={n}`   | Buscar por nome/telefone        | Sim  | ✅       |
+| GET    | `/api/clientes?page={p}&pageSize={n}`             | Listar todos                    | Sim  | ✅       |
 
 ### 6.3 Atendimentos
 
-| Método | Rota                                | Descrição                | Auth |
-| ------ | ----------------------------------- | ------------------------ | ---- |
-| POST   | `/api/atendimentos`                 | Criar atendimento        | Sim  |
-| PUT    | `/api/atendimentos/{id}`            | Atualizar atendimento    | Sim  |
-| PATCH  | `/api/atendimentos/{id}/status`     | Atualizar status         | Sim  |
-| GET    | `/api/atendimentos/{id}`            | Obter por ID             | Sim  |
-| GET    | `/api/atendimentos?status={status}` | Listar (filtro opcional) | Sim  |
+| Método | Rota                                                              | Descrição                | Auth | Paginado |
+| ------ | ----------------------------------------------------------------- | ------------------------ | ---- | -------- |
+| POST   | `/api/atendimentos`                                               | Criar atendimento        | Sim  | —        |
+| PUT    | `/api/atendimentos/{id}`                                          | Atualizar atendimento    | Sim  | —        |
+| PATCH  | `/api/atendimentos/{id}/status`                                   | Atualizar status         | Sim  | —        |
+| GET    | `/api/atendimentos/{id}`                                          | Obter por ID             | Sim  | —        |
+| GET    | `/api/atendimentos?status={status}&page={p}&pageSize={n}`         | Listar (filtro opcional) | Sim  | ✅       |
 
 ### 6.4 Bases
 
@@ -775,10 +775,10 @@ public record SyncPullResponse(
 
 ### 6.5 Rastreamento
 
-| Método | Rota                                | Descrição                | Auth |
-| ------ | ----------------------------------- | ------------------------ | ---- |
-| POST   | `/api/rastreamento/pontos`          | Registrar pontos (batch) | Sim  |
-| GET    | `/api/rastreamento/{atendimentoId}` | Obter percurso           | Sim  |
+| Método | Rota                                                          | Descrição                | Auth | Paginado |
+| ------ | ------------------------------------------------------------- | ------------------------ | ---- | -------- |
+| POST   | `/api/rastreamento/pontos`                                    | Registrar pontos (batch) | Sim  | —        |
+| GET    | `/api/rastreamento/{atendimentoId}?page={p}&pageSize={n}`     | Obter percurso           | Sim  | ✅       |
 
 ### 6.6 Dashboard
 
@@ -978,13 +978,22 @@ public class ProcessarSyncBatchCommandHandler : IRequestHandler<ProcessarSyncBat
 ### 8.1 Leitura Direta (sem regras de negócio)
 
 ```csharp
-// BuscarClientesQuery.cs
-public record BuscarClientesQuery(string? Query) : IRequest<List<ClienteDto>>;
+// BuscarClientesQuery.cs  ← PAGINADA (ver seção 10)
+public record BuscarClientesQuery(
+    string? Query,
+    int Page = 1,
+    int PageSize = 20
+) : IRequest<PagedResult<ClienteDto>>;
 // Handler: usa EF .Where(c => c.Nome.Contains(q) || c.Telefone.Contains(q))
+//          + CountAsync + Skip/Take
 
-// ListarAtendimentosQuery.cs
-public record ListarAtendimentosQuery(AtendimentoStatus? Status) : IRequest<List<AtendimentoDto>>;
-// Handler: usa EF com filtro opcional + Include(Cliente) para ClienteNome
+// ListarAtendimentosQuery.cs  ← PAGINADA (ver seção 10)
+public record ListarAtendimentosQuery(
+    AtendimentoStatus? Status,
+    int Page = 1,
+    int PageSize = 20
+) : IRequest<PagedResult<AtendimentoDto>>;
+// Handler: usa EF com filtro opcional + Include(Cliente) para ClienteNome + Skip/Take
 
 // ObterAtendimentoPorIdQuery.cs
 public record ObterAtendimentoPorIdQuery(string Id) : IRequest<AtendimentoDto>;
@@ -992,12 +1001,16 @@ public record ObterAtendimentoPorIdQuery(string Id) : IRequest<AtendimentoDto>;
 // ObterClientePorIdQuery.cs
 public record ObterClientePorIdQuery(string Id) : IRequest<ClienteDto>;
 
-// ListarBasesQuery.cs
+// ListarBasesQuery.cs  ← NÃO paginada (volume máximo: dezenas de bases)
 public record ListarBasesQuery() : IRequest<List<BaseDto>>;
 
-// ObterPercursoQuery.cs
-public record ObterPercursoQuery(string AtendimentoId) : IRequest<List<PontoRastreamentoDto>>;
-// Handler: .Where(p => p.AtendimentoId == id).OrderBy(p => p.Timestamp)
+// ObterPercursoQuery.cs  ← PAGINADA (ver seção 10)
+public record ObterPercursoQuery(
+    string AtendimentoId,
+    int Page = 1,
+    int PageSize = 100
+) : IRequest<PagedResult<PontoRastreamentoDto>>;
+// Handler: .Where(p => p.AtendimentoId == id).OrderBy(p => p.Timestamp) + Skip/Take
 ```
 
 ### 8.2 Dashboard Queries (Agregações)
@@ -1212,7 +1225,159 @@ public class UnitOfWork : IUnitOfWork
 
 ---
 
-## 10. Sincronização Offline-First
+## 10. Paginação
+
+### 10.1 Princípio
+
+Consultas que retornam **listas potencialmente grandes** devem sempre suportar paginação via cursor ou offset. O padrão adotado é **offset-based** com `PagedResult<T>` como envelope de resposta.
+
+**Critério para paginar uma query:**
+- Retorna lista de entidades com objetos "pesados" (ex: `AtendimentoDto` com 4 `LocalGeoDto`)
+- Sem limite natural de resultados (ex: `Clientes`, `Atendimentos`)
+- Pontos de rastreamento de um único atendimento (podem ser centenas/milhares)
+
+**Não precisam de paginação:**
+- `GET /api/bases` — número de bases é naturalmente pequeno (< 50)
+- Queries de Dashboard — retornam agregações, não listas de entidades
+- `GET /api/sync/pull` — usa o timestamp `desde` como filtro natural
+
+---
+
+### 10.2 DTO Padrão — `PagedResult<T>`
+
+```csharp
+// Common/DTOs/PagedResult.cs
+public record PagedResult<T>(
+    List<T> Items,
+    int Page,
+    int PageSize,
+    int TotalCount,
+    int TotalPages,
+    bool HasNextPage,
+    bool HasPreviousPage
+)
+{
+    public static PagedResult<T> Create(List<T> items, int page, int pageSize, int totalCount)
+    {
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        return new PagedResult<T>(
+            items,
+            page,
+            pageSize,
+            totalCount,
+            totalPages,
+            page < totalPages,
+            page > 1);
+    }
+}
+```
+
+---
+
+### 10.3 Query Parameters Padrão
+
+Todos os endpoints paginados aceitam os seguintes query parameters:
+
+| Parâmetro | Tipo  | Padrão | Máximo | Descrição              |
+|-----------|-------|--------|--------|------------------------|
+| `page`    | `int` | `1`    | —      | Página atual (1-based) |
+| `pageSize`| `int` | `20`   | `100`  | Itens por página       |
+
+**Exemplo de request:**
+```
+GET /api/clientes?page=2&pageSize=20
+GET /api/atendimentos?status=Concluido&page=1&pageSize=50
+GET /api/rastreamento/{atendimentoId}?page=1&pageSize=100
+```
+
+**Exemplo de response:**
+```json
+{
+  "items": ["..."],
+  "page": 2,
+  "pageSize": 20,
+  "totalCount": 87,
+  "totalPages": 5,
+  "hasNextPage": true,
+  "hasPreviousPage": true
+}
+```
+
+---
+
+### 10.4 Queries com Paginação
+
+| Query                      | Paginada? | Justificativa                                         |
+|----------------------------|-----------|-------------------------------------------------------|
+| `BuscarClientesQuery`       | ✅ Sim    | Carteira de clientes pode crescer indefinidamente     |
+| `ListarAtendimentosQuery`   | ✅ Sim    | Histórico de atendimentos é o maior conjunto de dados |
+| `ObterPercursoQuery`        | ✅ Sim    | Um atendimento pode ter milhares de pontos GPS        |
+| `ObterKmPorClienteQuery`    | ✅ Sim    | Ranking de clientes pode ser extenso                  |
+| `ObterAtendimentosPorDiaQuery` | ✅ Sim | Período longo pode gerar muitos registros diários     |
+| `ListarBasesQuery`          | ❌ Não    | Volume máximo esperado: dezenas de bases              |
+| `ObterResumoPeriodoQuery`   | ❌ Não    | Retorna um único objeto agregado                      |
+| `ObterTempoPorEtapaQuery`   | ❌ Não    | Retorna um único objeto agregado                      |
+| `PullSyncQuery`             | ❌ Não    | Filtrado por timestamp — app controla o delta         |
+
+---
+
+### 10.5 Implementação da Query Paginada
+
+```csharp
+// Padrão de Query paginada
+public record BuscarClientesQuery(
+    string? Query,
+    int Page = 1,
+    int PageSize = 20
+) : IRequest<PagedResult<ClienteDto>>;
+
+public class BuscarClientesQueryHandler : IRequestHandler<BuscarClientesQuery, PagedResult<ClienteDto>>
+{
+    public async Task<PagedResult<ClienteDto>> Handle(BuscarClientesQuery request, CancellationToken ct)
+    {
+        // 1. Monta o IQueryable (sem ToList ainda)
+        var query = _context.Clientes.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(request.Query))
+            query = query.Where(c => c.Nome.Contains(request.Query)
+                                  || c.Telefone.Contains(request.Query));
+
+        // 2. Conta o total ANTES de paginar (query no banco)
+        var totalCount = await query.CountAsync(ct);
+
+        // 3. Aplica paginação
+        var pageSize = Math.Min(request.PageSize, 100); // garante máximo de 100
+        var items = await query
+            .OrderBy(c => c.Nome)
+            .Skip((request.Page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(c => new ClienteDto(...))
+            .ToListAsync(ct);
+
+        return PagedResult<ClienteDto>.Create(items, request.Page, pageSize, totalCount);
+    }
+}
+```
+
+> **Importante:** O `CountAsync` e o `ToListAsync` geram **2 queries** no banco.
+> Para datasets muito grandes, considere usar `SELECT COUNT(*) OVER()` via SQL raw ou projections com `TotalCount`.
+
+---
+
+### 10.6 Validator de Paginação
+
+```csharp
+// Reutilizável via RuleSet ou herança
+RuleFor(x => x.Page)
+    .GreaterThanOrEqualTo(1).WithMessage("Page deve ser maior ou igual a 1.");
+
+RuleFor(x => x.PageSize)
+    .InclusiveBetween(1, 100).WithMessage("PageSize deve estar entre 1 e 100.");
+```
+
+---
+
+## 11. Sincronização Offline-First
 
 ### 10.1 Fluxo Completo
 
@@ -1237,7 +1402,7 @@ public class UnitOfWork : IUnitOfWork
 │  2. Para cada operação (em ordem cronológica):               │
 │     a. Deserializa payload baseado em {entidade}             │
 │     b. Verifica se ID já existe (idempotência)               │
-│        - Se create e já existe → skip (sucesso)              │
+│        - Se create e já existe → skip (sucesso)              |
 │        - Se update → compara AtualizadoEm (last-write-wins) │
 │     c. Persiste no banco                                     │
 │  3. Retorna resultados por operação                          │
@@ -1377,7 +1542,7 @@ public class ProcessarSyncBatchCommandHandler
 
 ---
 
-## 11. Autenticação e Autorização
+## 12. Autenticação e Autorização
 
 ### 11.1 JWT Configuration
 
@@ -1442,7 +1607,7 @@ builder.Services.AddAuthorization(options =>
 
 ---
 
-## 12. Regras de Negócio (RN)
+## 13. Regras de Negócio (RN)
 
 Estas são as 41 regras extraídas do app. Todas devem ser **validadas também no servidor**:
 
@@ -1502,7 +1667,7 @@ Estas são as 41 regras extraídas do app. Todas devem ser **validadas também n
 | RN     | Regra                           | Validação Server               |
 | ------ | ------------------------------- | ------------------------------ |
 | RN-029 | Múltiplas bases permitidas      | Sem restrição                  |
-| RN-030 | Uma base principal por vez      | Transação: reset all + set one |
+| RN-030 | Uma base principal por vez      | Transação: reset all + setar one |
 | RN-031 | Admin cadastra, sync para todos | Policy: AdminOnly              |
 
 ### Sincronização
@@ -1527,7 +1692,7 @@ Estas são as 41 regras extraídas do app. Todas devem ser **validadas também n
 
 ---
 
-## 13. Validações (FluentValidation)
+## 14. Validações (FluentValidation)
 
 ### 13.1 Pipeline com MediatR
 
@@ -1613,7 +1778,7 @@ public class AtualizarStatusValidator : AbstractValidator<AtualizarStatusCommand
 
 ---
 
-## 14. Migrations EF Core
+## 15. Migrations EF Core
 
 ### 14.1 Initial Migration
 
@@ -1652,7 +1817,7 @@ public static class SeedData
 
 ---
 
-## 15. Testes
+## 16. Testes
 
 ### 15.1 Estrutura de Testes
 
@@ -1695,7 +1860,7 @@ GuinchoApp.Tests/
 
 ---
 
-## 16. Deploy e Configuração
+## 17. Deploy e Configuração
 
 ### 16.1 Pacotes NuGet Necessários
 
@@ -1794,44 +1959,184 @@ app.Run();
 
 ### Fase 1 — Foundation
 
-- [ ] Criar solution com 4 projetos (API, Application, Domain, Infrastructure)
-- [ ] Instalar pacotes NuGet
-- [ ] Criar entidades (Domain)
-- [ ] Configurar EF Core + Migrations + Seed
-- [ ] Implementar GenericRepository + UnitOfWork
-- [ ] Configurar JWT + AuthController
+- [x] Criar solution com 4 projetos (API, Application, Domain, Infrastructure)
+- [x] Instalar pacotes NuGet *(AutoMapper atualizado para 16.1.1 — fix CVE-2026-32933)*
+- [x] Criar entidades (Domain) *(TDD — 59 testes passando)*
+  - [x] `EntityBase` (classe abstrata)
+  - [x] `Usuario`
+  - [x] `Cliente`
+  - [x] `Atendimento`
+  - [x] `Base`
+  - [x] `PontoRastreamento`
+  - [x] `LocalGeo` (Value Object)
+  - [x] Enums: `AtendimentoStatus`, `TipoValor`, `UsuarioRole`
+  - [x] `AtendimentoStatusHelper` (matriz de transição de status — RN-018/021/022)
+- [x] Configurar EF Core + Migrations + Seed *(TDD — 72 testes passando)*
+  - [x] `AppDbContext` com `SaveChangesAsync` que atualiza `AtualizadoEm` automaticamente
+  - [x] `UsuarioConfiguration` — índice único em Email, Role como string
+  - [x] `ClienteConfiguration` — Owned Type `EnderecoDefault`, índices Nome/Telefone
+  - [x] `AtendimentoConfiguration` — 4 Owned Types LocalGeo (Saida/Coleta/Entrega/Retorno), FKs Restrict, índices Status/ClienteId/CriadoEm
+  - [x] `BaseConfiguration` — Owned Type `Local`
+  - [x] `PontoRastreamentoConfiguration` — FK Cascade, índices AtendimentoId/Timestamp
+  - [x] Migration `InitialCreate` gerada (5 tabelas, todos os índices e FKs)
+  - [x] `SeedData` — admin padrão idempotente com BCrypt hash
+  - [x] `Program.cs` — `MigrateAsync` + `SeedData` na startup
+  - [x] `Microsoft.EntityFrameworkCore.Design` adicionado ao projeto API
+- [x] Implementar GenericRepository + UnitOfWork *(TDD — 100 testes passando)*
+  - [x] `IRepository<T>` — interface genérica base
+  - [x] `IClienteRepository.cs` — arquivo dedicado (SRP/ISP)
+  - [x] `IAtendimentoRepository.cs` — arquivo dedicado (SRP/ISP)
+  - [x] `IPontoRastreamentoRepository.cs` — arquivo dedicado (SRP/ISP)
+  - [x] `IBaseRepository.cs` — arquivo dedicado (SRP/ISP)
+  - [x] `IUsuarioRepository.cs` — arquivo dedicado (SRP/ISP)
+  - [x] `IUnitOfWork` — expõe todos os repositórios + `SaveChangesAsync`, `BeginTransactionAsync`, `CommitAsync`, `RollbackAsync`
+  - [x] `GenericRepository<T>` — implementação base com EF Core
+  - [x] `SpecificRepositories.cs` — 5 repositórios concretos
+  - [x] `UnitOfWork` — lazy-load de repositórios, suporte a transações
+  - [x] `IUnitOfWork` registrado no DI como `Scoped` no `Program.cs`
+- [x] Configurar JWT + AuthController *(TDD — 108 testes passando)*
+  - [x] `JwtOptions` + binding da seção `Jwt` do `appsettings.json`
+  - [x] `IJwtService` + implementação `JwtService`
+  - [x] JWT com claims `sub`, `email`, `role`, `jti` e expiração configurável
+  - [x] `AddAuthentication().AddJwtBearer(...)` configurado no `Program.cs`
+  - [x] Policies `AdminOnly` e `OperadorOuAdmin` configuradas no `Program.cs`
+  - [x] `AuthController` com endpoints `POST /api/auth/login`, `GET /api/auth/me`, `POST /api/auth/refresh`
+  - [x] Login com `BCrypt.Verify(...)`
+  - [x] `UseAuthentication()` adicionado ao pipeline HTTP
+  - [x] Testes unitários de `JwtService`
+  - [x] Testes de controller para `login`, `me` e `refresh`
+- [x] Definir padrão de Paginação *(seção 10 do guia)*
+  - [x] `PagedResult<T>` em `Common/DTOs` — envelope padrão para todas as respostas paginadas
+  - [x] Critério documentado: quais queries devem ou não paginar
+  - [x] Parâmetros padrão: `page` (default 1) e `pageSize` (default 20, máximo 100)
+  - [x] Tabela de endpoints atualizada com coluna `Paginado`
+  - [x] Queries da seção 8 atualizadas para refletir assinaturas paginadas
 
 ### Fase 2 — CRUD
 
-- [ ] Commands + Handlers para Cliente
-- [ ] Commands + Handlers para Base
-- [ ] Commands + Handlers para Atendimento (com validação de transição de status)
-- [ ] Commands + Handlers para Rastreamento (batch)
-- [ ] Queries + Handlers para todas as entidades
-- [ ] Validators (FluentValidation)
-- [ ] Controllers REST
+- [x] Commands + Handlers para Cliente *(TDD — 129 testes passando)*
+  - [x] `LocalGeoDto` em `Common/DTOs` (compartilhado entre módulos)
+  - [x] `ClienteDto`, `CriarClienteRequest`, `AtualizarClienteRequest`
+  - [x] `CriarClienteCommand` + Handler (idempotente — sync safe)
+  - [x] `AtualizarClienteCommand` + Handler (conflict resolution last-write-wins RN-036)
+  - [x] `BuscarClientesQuery` + Handler — **paginada** (`PagedResult<ClienteDto>`)
+  - [x] `ObterClientePorIdQuery` + Handler
+  - [x] `CriarClienteValidator` (FluentValidation)
+  - [x] `AtualizarClienteValidator` (FluentValidation)
+  - [x] `ClientesController` com `GET /api/clientes?page&pageSize`, `GET /api/clientes/{id}`, `POST /api/clientes`, `PUT /api/clientes/{id}`
+  - [x] MediatR + FluentValidation registrados no DI (`Program.cs`)
+  - [x] Testes unitários: Commands, Queries (incluindo cenários de paginação) e Validators
+- [x] Commands + Handlers para Base *(TDD — 159 testes passando)*
+  - [x] `BaseDto`, `CriarBaseRequest`, `AtualizarBaseRequest`
+  - [x] `CriarBaseCommand` + Handler (idempotente — sync safe, RN-030)
+  - [x] `AtualizarBaseCommand` + Handler (RN-030 — transação ao promover para principal)
+  - [x] `DefinirBasePrincipalCommand` + Handler (reset all + set one em transação atômica)
+  - [x] `ListarBasesQuery` + Handler — não paginada (volume natural pequeno), principal primeiro
+  - [x] `ObterBasePorIdQuery` + Handler
+  - [x] `CriarBaseValidator` (FluentValidation — Id, Nome, Local, Lat/Lng)
+  - [x] `AtualizarBaseValidator` (FluentValidation)
+  - [x] `BasesController` com `GET /api/bases`, `GET /api/bases/{id}`, `POST /api/bases`, `PUT /api/bases/{id}`, `POST /api/bases/{id}/principal`
+  - [x] Endpoints `POST/PUT/POST-principal` protegidos por `[Authorize(Policy = "AdminOnly")]`
+  - [x] Testes unitários: Commands, Queries e Validators (30 novos testes)
+- [x] Commands + Handlers para Atendimento *(TDD — 228 testes passando)*
+  - [x] `AtendimentoDto`, `CriarAtendimentoRequest`, `AtualizarAtendimentoRequest`, `AtualizarStatusRequest`
+  - [x] `CriarAtendimentoCommand` + Handler (idempotente — sync safe, TipoValor parse case-insensitive)
+  - [x] `AtualizarAtendimentoCommand` + Handler (RN-016 — apenas Rascunho é editável)
+  - [x] `AtualizarStatusCommand` + Handler (RN-018/020/021/022 — matriz de transição + timestamps do ciclo de vida)
+  - [x] `AtendimentoMapper` — helper interno centralizando mapeamento entidade → DTO
+  - [x] `ListarAtendimentosQuery` + Handler — **paginada** (`PagedResult<AtendimentoDto>`), filtro por status
+  - [x] `ObterAtendimentoPorIdQuery` + Handler (inclui ClienteNome via navegação)
+  - [x] `CriarAtendimentoValidator` + `LocalGeoValidator` (FluentValidation)
+  - [x] `AtualizarStatusValidator` (FluentValidation — valida enum + valores numéricos)
+  - [x] `AtendimentosController` com `GET /api/atendimentos`, `GET /api/atendimentos/{id}`, `POST /api/atendimentos`, `PUT /api/atendimentos/{id}`, `PATCH /api/atendimentos/{id}/status`
+  - [x] Testes unitários: todos os cenários da matriz de transição de status, ciclo de vida completo, RN-016/020/021/022 (69 novos testes)
+- [x] Commands + Handlers para Rastreamento (batch) *(TDD — 248 testes passando)*
+  - [x] `PontoRastreamentoDto`, `RegistrarPontosRequest`
+  - [x] `RegistrarPontosCommand` + Handler (batch idempotente — filtra IDs existentes em uma única query, RN-027)
+  - [x] `ObterPercursoQuery` + Handler — **paginada** (`PagedResult<PontoRastreamentoDto>`, pageSize padrão 100)
+  - [x] `RegistrarPontosValidator` + `PontoRastreamentoDtoValidator` (valida cada ponto do lote via `RuleForEach`)
+  - [x] `RastreamentoController` com `POST /api/rastreamento/pontos` e `GET /api/rastreamento/{atendimentoId}`
+  - [x] Testes: idempotência com IDs duplicados, batch grande (500 pontos), mapeamento de campos, paginação (20 novos testes)
+- [x] Queries + Handlers para todas as entidades *(incluídas nos módulos acima)*
+- [x] Validators (FluentValidation) *(incluídos em cada módulo)*
+- [x] Controllers REST *(incluídos em cada módulo)*
 
 ### Fase 3 — Sync
 
-- [ ] Endpoint POST `/api/sync/push` com idempotência
-- [ ] Endpoint GET `/api/sync/pull` com filtro por timestamp
-- [ ] Lógica de conflict resolution (last-write-wins)
-- [ ] Testes de cenários de sync
+- [x] Endpoint POST `/api/sync/push` com idempotência *(TDD — 272 testes passando)*
+  - [x] `SyncDtos.cs` — `SyncPushRequest`, `SyncOperationDto`, `SyncPushResponse`, `SyncResultDto`, `SyncPullResponse`, `UsuarioSyncDto`
+  - [x] `ProcessarSyncBatchCommand` + Handler — processa batch em ordem cronológica (RN-034)
+  - [x] Idempotência em todas as entidades: create ignora se ID já existe
+  - [x] Payloads internos tipados: `ClienteSyncPayload`, `AtendimentoSyncPayload`, `BaseSyncPayload`
+  - [x] Erros isolados por operação — falha em uma não impede as demais
+- [x] Endpoint GET `/api/sync/pull` com filtro por timestamp
+  - [x] `PullSyncQuery` + Handler — retorna entidades com `AtualizadoEm > desde`
+  - [x] First sync: `desde = null` → retorna tudo via `GetAllAsync`
+  - [x] Sync incremental: `desde` informado → filtra via `FindAsync`
+  - [x] Inclui: Clientes, Atendimentos, Bases, Usuários (sem SenhaHash)
+- [x] Lógica de conflict resolution (last-write-wins — RN-036)
+  - [x] Cliente update: ignora se `AtualizadoEm` do servidor ≥ payload
+  - [x] Atendimento update: ignora se `AtualizadoEm` do servidor ≥ payload
+  - [x] Atendimento status transition: valida matriz de transição mesmo no sync
+  - [x] Base update: ignora se `AtualizadoEm` do servidor ≥ payload; reseta principal se `IsPrincipal = true`
+- [x] `SyncController` — `POST /api/sync/push` e `GET /api/sync/pull` com `[Authorize]`
+- [x] Testes de cenários de sync *(24 novos testes)*
+  - [x] Idempotência cliente/atendimento/ponto/base (create duplicado → sucesso sem duplicar)
+  - [x] Last-write-wins: update mais recente aplicado, update mais antigo ignorado
+  - [x] Update com entidade não encontrada → sucesso sem erro
+  - [x] Transição de status via sync (Rascunho → EmDeslocamento com IniciadoEm preenchido)
+  - [x] Entidade desconhecida → erro isolado
+  - [x] Payload JSON inválido → erro isolado
+  - [x] Múltiplas operações: resultados independentes (uma falha não cancela as demais)
+  - [x] Pull first sync (`desde = null`) → retorna tudo
+  - [x] Pull incremental (`desde` informado) → usa FindAsync, não GetAllAsync
+  - [x] Mapeamento Cliente/Usuário correto no pull
+  - [x] `SincronizadoEm` retornado com timestamp atual
 
 ### Fase 4 — Dashboard
 
-- [ ] Queries agregadas (Resumo, Ranking, Etapas, Diário)
-- [ ] Controller com filtros de período
+- [x] Queries agregadas *(TDD — 291 testes passando)*
+  - [x] `DashboardDtos.cs` — `ResumoPeriodoDto`, `ResumoClienteDto`, `TempoPorEtapaDto`, `AtendimentosPorDiaDto`
+  - [x] `ObterResumoPeriodoQuery` + Handler — km operacional, km cobrado, receita total, contagens por status (RN-038/038B)
+  - [x] `ObterKmPorClienteQuery` + Handler — GROUP BY ClienteId com SUM de km/receita, **paginado** (RN-040)
+  - [x] `ObterTempoPorEtapaQuery` + Handler — AVG das diferenças entre timestamps do ciclo de vida (somente concluídos com todos os timestamps, RN-039)
+  - [x] `ObterAtendimentosPorDiaQuery` + Handler — GROUP BY ConcluidoEm.Date, **paginado** (RN-040)
+  - [x] `GetPorPeriodoComClienteAsync` adicionado ao `IAtendimentoRepository` e implementação (inclui navegação Cliente)
+- [x] Controller com filtros de período
+  - [x] `DashboardController` — `GET /api/dashboard/resumo`, `GET /api/dashboard/clientes`, `GET /api/dashboard/etapas`, `GET /api/dashboard/diario`
+  - [x] Todos os endpoints com `[Authorize]`, parâmetros `inicio` e `fim` obrigatórios
+  - [x] Validação `fim >= inicio` nos 4 endpoints (retorna 400)
+  - [x] `clientes` e `diario` suportam paginação (`page`, `pageSize`)
+- [x] Testes de queries de dashboard *(19 novos testes)*
+  - [x] Resumo: zeros quando sem dados, contagem por status, km operacional apenas com DistanciaReal, receita apenas concluídos, kmCobrado apenas concluídos
+  - [x] KmPorCliente: agrupamento, ordenação desc por km, receita somente concluídos, paginação, lista vazia
+  - [x] TempoPorEtapa: zeros sem dados, ignora atendimentos com timestamps incompletos, cálculo de médias correto, ignora não-concluídos
+  - [x] AtendimentosPorDia: vazio sem dados, agrupamento por dia, ignora não-concluídos, ordenação ascendente, paginação
 
 ### Fase 5 — QA
 
-- [ ] Testes unitários dos Handlers
-- [ ] Testes de integração dos Controllers
-- [ ] Testes de validação (boundary values)
-- [ ] Swagger documentation
-- [ ] Testar sync completo com app Flutter
+- [x] Testes unitários dos Handlers *(cobertos nas Fases 1–4 — TDD contínuo)*
+- [x] Testes de integração dos Controllers *(TDD — 425 testes passando)*
+  - [x] `ClientesControllerTests` — GET paginado, GET por ID (ok/not found), POST (created), PUT (ok/not found)
+  - [x] `AtendimentosControllerTests` — GET sem filtro, GET status inválido (bad request), GET status válido, GET por ID (not found), POST (created), PUT (bad request RN-016), PATCH status (ok/bad request)
+  - [x] `BasesControllerTests` — GET lista, GET por ID (not found), POST (created), PUT (not found), POST principal (ok/not found)
+  - [x] `RastreamentoControllerTests` — POST batch (ok com contador), GET percurso paginado, POST com todos duplicados (0 inseridos)
+  - [x] `SyncControllerTests` — POST push (ok), POST push batch vazio (sem chamar mediator), POST push nulo (sem chamar mediator), GET pull sem `desde`, GET pull com `desde`
+  - [x] `DashboardControllerTests` — resumo (ok/bad request), clientes (ok/bad request), etapas (ok/bad request), diário (ok/bad request), verificação do período passado ao mediator
+- [x] Testes de validação (boundary values) *(134 novos testes)*
+  - [x] `CriarClienteValidatorTests` — Id (vazio/max 36), Nome (vazio/max 200/exato 200), Telefone (vazio/max 20/exato 20), Documento (max 20/nulo), EnderecoDefault condicional
+  - [x] `AtualizarClienteValidatorTests` — Id, Nome, Telefone, AtualizadoEm obrigatório, EnderecoDefault condicional
+  - [x] `LocalGeoValidatorTests` — Latitude ±90 (limites exatos e fora), Longitude ±180 (limites exatos e fora), EnderecoTexto (vazio/max 500)
+  - [x] `CriarAtendimentoValidatorTests` — Id, ClienteId, UsuarioId, ValorPorKm (0/-1), DistanciaEstimada (0/-1), TipoValor (válidos case-insensitive / inválidos), Observacoes (max 1000/nulo)
+  - [x] `AtualizarStatusValidatorTests` — AtendimentoId, NovoStatus (todos os 7 valores válidos + case-insensitive + inválidos), DistanciaRealKm (negativa/nula), ValorCobrado (negativo/zero)
+  - [x] `CriarBaseValidatorTests` — Id, Nome, Local nulo, EnderecoTexto, Latitude/Longitude fora dos limites
+  - [x] `AtualizarBaseValidatorTests` — Id, Nome max, Local nulo
+  - [x] `RegistrarPontosValidatorTests` — lista vazia, lista nula
+  - [x] `PontoRastreamentoDtoValidatorTests` — Id, AtendimentoId, Latitude/Longitude (boundary), Accuracy (negativa/zero), Timestamp vazio
+- [x] Swagger documentation *(Swagger UI em `/swagger` + JWT Bearer no botão Authorize)*
+- [ ] Testar sync completo com app Flutter *(pendente — requer app mobile)*
 
 ---
 
-> **Última atualização:** 11/03/2026  
-> **Gerado automaticamente** a partir do mapeamento do app Flutter (Sprint 0-8 concluídas, 345 testes)
+> **Última atualização:** 25/03/2026 — Fase 5 concluída: QA (testes de integração de 6 controllers + boundary values de 8 validators, 134 novos testes — total 425 testes passando)  
+> **Gerado automaticamente** a partir do mapeamento do app Flutter (Sprint 0-11 concluídas, 425 testes)

@@ -9,6 +9,6 @@ abstract class BaseRemoteDatasource {
   /// GET /bases
   Future<List<BaseModel>> listarTodas();
 
-  /// PUT /bases/:id/principal
+  /// POST /bases/:id/principal
   Future<BaseModel> definirPrincipal(String id);
 }
