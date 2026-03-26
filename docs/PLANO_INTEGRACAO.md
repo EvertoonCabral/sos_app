@@ -1,31 +1,18 @@
 # Plano de Integração Flutter ↔ SosApi
 
-> **Papel:** Arquiteto de Software Senior  
-> **Análise inicial:** 2026-03-26  
-> **Última atualização:** 2026-03-26
+> **Data da análise inicial:** 2026-03-26  
+> **Última validação:** 2026-03-26  
+> **Status geral:** Fase 1 concluída, Fase 4 concluída e Fase 5 concluída no app Flutter; restam validações operacionais complementares fora do núcleo da integração
 
----
-
-## 📊 Progresso Geral
-
-| Fase | Total | ✅ Concluído | 🔄 Em andamento | ⏳ Pendente |
-|------|-------|-------------|-----------------|------------|
-| Fase 1 — Fundação | 4 | 4 | 0 | 0 |
-| Fase 2 — Auth | 3 | 0 | 0 | 3 |
-| Fase 3 — CRUD Core | 6 | 0 | 0 | 6 |
-| Fase 4 — Rastreamento/Sync | 3 | 0 | 0 | 3 |
-| Fase 5 — Melhorias | 3 | 0 | 0 | 3 |
-| **TOTAL** | **19** | **4** | **0** | **15** |
+> **Regra de qualidade:** este projeto trabalha obrigatoriamente com TDD. Toda correção ou evolução deve preservar a suíte automatizada totalmente funcional, e nenhum item é considerado concluído sem `flutter test` 100% verde.
 
 ---
 
 ## Diagnóstico Geral
 
-O app GuinchoApp está **completo em 8 sprints** (345 testes, 0 issues de lint) com Clean Architecture robusta, offline-first e todas as camadas implementadas. O backend SosApi está igualmente completo com 425 testes, CQRS, JWT, e Swagger documentado.
+O app GuinchoApp está **completo em 8 sprints** com Clean Architecture robusta, offline-first e todas as camadas implementadas. O backend SosApi está igualmente completo com 425 testes, CQRS, JWT, e Swagger documentado.
 
-**O problema:** os dois projetos foram desenvolvidos em paralelo e há desalinhamento de contrato de API em múltiplas camadas.
-
-**URL da API publicada:** `https://burghal-klara-nonextraneously.ngrok-free.dev`
+**O problema:** os dois projetos foram desenvolvidos em paralelo e ainda exigem validações operacionais pontuais, mas o núcleo da integração ponta a ponta foi alinhado. A fundação de rede/serialização da Fase 1 foi concluída, o contrato de `AtendimentoDto` está validado, a conclusão `PorKm` passa a preencher `distanciaRealKm`/`valorCobrado` antes do `PATCH`, os fluxos de PATCH/status, batch de rastreamento e pull sync já estão alinhados ao backend, e auth/dashboard passaram a consumir os contratos remotos confirmados.
 
 ---
 
@@ -33,160 +20,190 @@ O app GuinchoApp está **completo em 8 sprints** (345 testes, 0 issues de lint) 
 
 ### 🔴 BLOQUEANTES — App quebra em runtime
 
-| # | Gap | Status | Flutter | Backend | Impacto |
-|---|-----|--------|---------|---------|---------|
-| 1 | **baseUrl nunca configurado no Dio** | ✅ Resolvido | `NetworkModule` criava `Dio()` sem baseUrl | Endpoints reais | 100% das chamadas HTTP falhariam |
-| 2 | **Porta dev errada / URL incorreta** | ✅ Resolvido | `http://10.0.2.2:3000` → ngrok URL com `/api` | .NET em `5000/7000` | Conexão recusada |
-| 3 | **Prefixo `/api/` ausente em todos os endpoints** | ✅ Resolvido | `/auth/login`, `/clientes`... | `/api/auth/login`... | HTTP 404 em toda chamada |
-| 4 | **LoginResponse — estrutura JSON incompatível** | ⏳ Pendente | Parseia `data['usuario']` (objeto aninhado) | Retorna flat: `{token, usuarioId, nome, email, role, expiresAt}` | `NullPointerException` ao fazer login |
-| 5 | **UsuarioModel.fromJson — campos errados** | ⏳ Pendente | Lê `json['id']`, `json['telefone']`, `json['valor_por_km_default']` | Retorna `usuarioId`, sem `telefone`, `valorPorKmDefault` | Parse falha no login e no GET /me |
-| 6 | **Convenção JSON: snake_case vs camelCase** | ⏳ Pendente (Fase 3) | snake_case: `cliente_id`, `criado_em`... | camelCase: `clienteId`, `criadoEm`... | Campos `null` após parse |
-| 7 | **Enum Status/TipoValor: casing incorreto** | ✅ Resolvido | `.name` retornava `"emDeslocamento"`, `"porKm"` | `"EmDeslocamento"`, `"PorKm"` (PascalCase) | `ArgumentError` no parse |
-| 8 | **GET /clientes — esperando List, recebe PagedResult** | ⏳ Pendente | `_dio.get<List<dynamic>>('/clientes')` | `{items:[], page:1, totalCount:...}` | `CastError` ao buscar clientes |
-| 9 | **GET /atendimentos — mesmo problema de paginação** | ⏳ Pendente | `response.data as List` | `PagedResult<AtendimentoDto>` | `CastError` ao listar atendimentos |
-| 10 | **Transição de status usa PUT, backend requer PATCH** | ⏳ Pendente | `PUT /atendimentos/{id}` completo | `PATCH /api/atendimentos/{id}/status` | Transições ignoradas/rejeitadas |
-| 11 | **Base.definirPrincipal: PUT → POST** | ⏳ Pendente | `_dio.put('/bases/$id/principal')` | `POST /api/bases/{id}/principal` | HTTP 405 Method Not Allowed |
-| 12 | **RastreamentoRemoteDatasource não implementado** | ⏳ Pendente | Arquivo `.gitkeep` — sem impl | `POST /api/rastreamento/pontos` existe | GPS nunca sincroniza |
-| 13 | **SyncManager endpoint rastreamento errado** | ⏳ Pendente | `POST /pontos-rastreamento` (individual) | `POST /api/rastreamento/pontos` com `{pontos:[...]}` (batch) | Sync falha com 404 |
+| #   | Gap                                                             | Flutter                                                                                                            | Backend                                                                                             | Impacto                                  |
+| --- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| 1   | **baseUrl configurada de forma inconsistente**                  | Resolvido: `NetworkModule` agora injeta `Dio` já configurado com `baseUrl`, headers e interceptors                 | Endpoints reais                                                                                     | Item concluído na Fase 1                 |
+| 2   | **Porta dev errada**                                            | Resolvido no `AppConfig` atual                                                                                     | Backend exposto via URL com `/api`                                                                  | Item concluído na Fase 1                 |
+| 3   | **Prefixo `/api/` dependente da inicialização do cliente HTTP** | Resolvido: os datasources continuam com paths relativos, mas o `Dio` injetado já sai com `/api` na base            | Backend responde em `/api/auth/login`, `/api/clientes`...                                           | Item concluído na Fase 1                 |
+| 4   | **LoginResponse — estrutura JSON incompatível**                 | Resolvido conforme `BACKEND_GUIDE`: `AuthRemoteDatasourceImpl` parseia `{ token, usuario }`                        | `BACKEND_GUIDE` documenta `LoginResponse(string Token, UsuarioDto Usuario)`                         | Item validado como alinhado no workspace |
+| 5   | **UsuarioModel.fromJson — campos errados**                      | Resolvido para o contrato camelCase atual do app/backend                                                           | Backend retorna camelCase nos DTOs documentados                                                     | Item concluído no workspace              |
+| 6   | **Convenção JSON: snake_case vs camelCase**                     | Resolvido nos models principais com serialização e leitura em camelCase                                            | Backend serializa em camelCase (`clienteId`, `criadoEm`, `distanciaEstimadaKm`)                     | Item concluído na Fase 1                 |
+| 7   | **Enum Status/TipoValor no AtendimentoDto**                     | Resolvido: Flutter serializa e desserializa enums de atendimento em PascalCase (`Rascunho`, `PorKm`)               | Validado: `AtendimentoMapper.ToDto(...)` usa `a.TipoValor.ToString()` e `a.Status.ToString()`       | Item concluído na Fase 3                 |
+| 8   | **GET /clientes — esperando List, recebe PagedResult**          | Resolvido: `ClienteRemoteDatasourceImpl` agora parseia `PagedResult` e expõe `items`                               | Retorna `{items:[], page:1, totalCount:...}`                                                        | Item concluído na Fase 3                 |
+| 9   | **GET /atendimentos — mesmo problema de paginação**             | Resolvido: `AtendimentoRemoteDatasourceImpl` agora parseia `PagedResult` e expõe `items`                           | Retorna `PagedResult<AtendimentoDto>`                                                               | Item concluído na Fase 3                 |
+| 10  | **Transição de status usa PUT, backend requer PATCH**           | Resolvido: `status_update` agora sincroniza via `PATCH /atendimentos/{id}/status`                                  | Contrato confirmado: `{novoStatus, atualizadoEm, distanciaRealKm?, valorCobrado?}`                  | Item concluído na Fase 3                 |
+| 11  | **Base.definirPrincipal: PUT → POST**                           | Resolvido: `BaseRemoteDatasourceImpl` usa `POST /bases/{id}/principal`                                             | `POST /api/bases/{id}/principal`                                                                    | Item concluído na Fase 3                 |
+| 12  | **RastreamentoRemoteDatasource não implementado**               | Resolvido: criado datasource remoto com `POST /rastreamento/pontos` e `GET /rastreamento/{atendimentoId}` paginado | Contrato confirmado: `POST /api/rastreamento/pontos` com `RegistrarPontosRequest { pontos: [...] }` | Item concluído na Fase 4                 |
+| 13  | **SyncManager endpoint rastreamento errado**                    | Resolvido: `SyncManager` agrupa pontos pendentes e envia batch para `/rastreamento/pontos`                         | Backend confirma `POST /api/rastreamento/pontos` em batch e resposta `{ inseridos, total }`         | Item concluído na Fase 4                 |
 
 ### 🟡 IMPORTANTES — Funcionalidade incompleta
 
-| # | Gap | Status | Detalhe |
-|---|-----|--------|---------|
-| 14 | **Sem interceptor de refresh de token** | ⏳ Pendente | Backend tem `POST /api/auth/refresh`. Sem interceptor de 401. |
-| 15 | **Sem sincronização pull (servidor → app)** | ⏳ Pendente | `GET /api/sync/pull?desde=` existe no backend. Dados de outros dispositivos nunca chegam ao app. |
-| 16 | **Dashboard usa apenas banco local** | ⏳ Pendente | Endpoints `/api/dashboard/*` existem. Flutter lê só do Drift. |
-| 17 | **LocalGeo: naming snake_case vs camelCase** | ⏳ Pendente (Fase 3) | `endereco_texto` → `enderecoTexto`. Coordenadas ficam null. |
+| #   | Gap                                          | Detalhe                                                                                                                                                                              |
+| --- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 14  | **Sem interceptor de refresh de token**      | Resolvido: `AuthInterceptor` agora trata `401`, chama `POST /api/auth/refresh` com Bearer atual, persiste o novo token e repete a requisição original uma vez.                       |
+| 15  | **Sem sincronização pull (servidor → app)**  | Resolvido: `SyncManager` agora chama `GET /api/sync/pull?desde=` com cursor persistido e faz merge local preservando entidades ainda pendentes na fila.                              |
+| 16  | **Dashboard usa apenas banco local**         | Resolvido: `DashboardRepository` agora usa endpoints remotos (`/resumo`, `/clientes`, `/etapas`, `/diario`) quando online e mantém fallback local quando offline ou em falha remota. |
+| 17  | **LocalGeo: naming snake_case vs camelCase** | Resolvido nos models principais: serialização e leitura usam `enderecoTexto`.                                                                                                        |
 
 ### 🟢 MELHORIAS — Nice-to-have
 
-| # | Gap | Status | Detalhe |
-|---|-----|--------|---------|
-| 18 | **HTTPS/cleartext no Android** | ⏳ Pendente | ngrok já usa HTTPS — risco mitigado. Para dev local futuramente: `android:usesCleartextTraffic=true`. |
-| 19 | **Seed: verificar usuário admin** | ⏳ Pendente | Confirmar senha do `admin@guinchoapp.com` no `SeedData.cs`. |
+| #   | Gap                               | Detalhe                                                                                                                    |
+| --- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| 18  | **HTTPS/cleartext no Android**    | HTTP cleartext pode ser bloqueado no Android ≥9. Precisa `android:usesCleartextTraffic=true` para dev ou configurar HTTPS. |
+| 19  | **Seed: verificar usuário admin** | Confirmar senha do `admin@guinchoapp.com` no `SeedData.cs` para teste end-to-end.                                          |
 
 ---
 
 ## Mapa de Endpoints: Flutter → Backend
 
-| Flutter | Backend | Status |
-|---------|---------|--------|
-| `POST /auth/login` | `POST /api/auth/login` | ⚠️ Prefixo ✅ · Body shape ⏳ |
-| `GET /auth/me` | `GET /api/auth/me` | ⚠️ Prefixo ✅ · Field names ⏳ |
-| `POST /clientes` | `POST /api/clientes` | ⚠️ Prefixo ✅ · Casing ⏳ |
-| `GET /clientes?q=` | `GET /api/clientes?q=` | ⚠️ Prefixo ✅ · PagedResult ⏳ |
-| `GET /clientes/{id}` | `GET /api/clientes/{id}` | ⚠️ Prefixo ✅ · Casing ⏳ |
-| `PUT /clientes/{id}` | `PUT /api/clientes/{id}` | ⚠️ Prefixo ✅ · Casing ⏳ |
-| `POST /bases` | `POST /api/bases` | ⚠️ Prefixo ✅ · AdminOnly ⏳ |
-| `GET /bases` | `GET /api/bases` | ✅ Prefixo ✅ |
-| `PUT /bases/{id}/principal` | `POST /api/bases/{id}/principal` | ⚠️ Prefixo ✅ · Método HTTP ⏳ |
-| `POST /atendimentos` | `POST /api/atendimentos` | ⚠️ Prefixo ✅ · Casing ⏳ |
-| `GET /atendimentos` | `GET /api/atendimentos` | ⚠️ Prefixo ✅ · PagedResult ⏳ |
-| `PUT /atendimentos/{id}` | `PUT /api/atendimentos/{id}` + `PATCH /api/atendimentos/{id}/status` | ⚠️ Prefixo ✅ · PATCH status ⏳ |
-| `POST /pontos-rastreamento` | `POST /api/rastreamento/pontos` | ⏳ Path errado + batch ⏳ |
-| ❌ não existe | `GET /api/rastreamento/{atendimentoId}` | ⏳ Não implementado |
-| ❌ não existe | `GET /api/sync/pull?desde=` | ⏳ Não implementado |
-| ❌ não existe | `POST /api/auth/refresh` | ⏳ Não implementado |
-| ❌ não existe | `GET /api/dashboard/*` | ⏳ Não integrado |
+| Flutter (atual)              | Backend (real)                                                                  | Status                                                                                                     |
+| ---------------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `POST /auth/login`           | `POST /api/auth/login`                                                          | ✅ App alinhado ao `LoginResponse` flat (`token`, `usuarioId`, `nome`, `email`, `role`, `expiresAt`)       |
+| `GET /auth/me`               | `GET /api/auth/me`                                                              | ✅ App alinhado ao `UsuarioAtualResponse` flat (`usuarioId`, `nome`, `email`, `role`, `valorPorKmDefault`) |
+| `POST /clientes`             | `POST /api/clientes`                                                            | ✅ Prefixo e casing corrigidos                                                                             |
+| `GET /clientes?q=`           | `GET /api/clientes?q=`                                                          | ✅ Prefixo/casing ok; PagedResult tratado no datasource                                                    |
+| `GET /clientes/{id}`         | `GET /api/clientes/{id}`                                                        | ✅ Prefixo e casing corrigidos                                                                             |
+| `PUT /clientes/{id}`         | `PUT /api/clientes/{id}`                                                        | ✅ Prefixo e casing corrigidos                                                                             |
+| `POST /bases`                | `POST /api/bases`                                                               | ⚠️ Prefixo e casing ok; endpoint segue AdminOnly                                                           |
+| `GET /bases`                 | `GET /api/bases`                                                                | ✅ Prefixo e casing corrigidos                                                                             |
+| `POST /bases/{id}/principal` | `POST /api/bases/{id}/principal`                                                | ✅ Método HTTP alinhado                                                                                    |
+| `POST /atendimentos`         | `POST /api/atendimentos`                                                        | ✅ Prefixo ok; request/response de enums alinhados                                                         |
+| `GET /atendimentos`          | `GET /api/atendimentos`                                                         | ✅ Prefixo/casing ok; PagedResult tratado no datasource                                                    |
+| `PUT /atendimentos/{id}`     | `PUT /api/atendimentos/{id}` (rascunho) + `PATCH /api/atendimentos/{id}/status` | ✅ PATCH de status implementado via sync                                                                   |
+| `POST /pontos-rastreamento`  | `POST /api/rastreamento/pontos`                                                 | ✅ Sync ajustado para batch em `/rastreamento/pontos`                                                      |
+| ❌ não existe                | `GET /api/rastreamento/{atendimentoId}`                                         | ❌ Não implementado                                                                                        |
+| `GET /sync/pull?desde=`      | `GET /api/sync/pull?desde=`                                                     | ✅ Pull sync implementado com cursor persistido e merge local                                              |
+| `POST /auth/refresh`         | `POST /api/auth/refresh`                                                        | ✅ Refresh automático implementado após `401`                                                              |
+| `GET /dashboard/*`           | `GET /api/dashboard/*`                                                          | ✅ Dashboard remoto integrado com fallback local                                                           |
 
 ---
 
-## Roadmap de Implementação
+## Sequência Recomendada de Implementação
 
-### ✅ Fase 1 — Fundação (concluída em 2026-03-26)
+## Critério de Aceite Contínuo
 
-| # | Item | Arquivo(s) | Detalhe |
-|---|------|-----------|---------|
-| 1 | ~~`net-port-dev`~~ | `app_config.dart` | dev/staging → `https://burghal-klara-nonextraneously.ngrok-free.dev/api`; prod → `https://api.guinchoapp.com.br/api` |
-| 2 | ~~`net-baseurl`~~ | `http_client.dart` | `BaseOptions` agora inclui `baseUrl: AppConfig.instance.apiBaseUrl` |
-| 3 | ~~`json-casing`~~ | — | Decisão tomada: **Opção B** — atualizar modelos Flutter para camelCase (implementado na Fase 3) |
-| 4 | ~~`status-casing`~~ | `atendimento_enums.dart`, `atendimento_model.dart` | Extensions `toApiValue()`, `toAtendimentoStatus()`, `toTipoValor()`; model armazena camelCase, envia PascalCase |
+- Toda mudança deve nascer ou ser ajustada a partir de teste primeiro, seguindo Red → Green → Refactor.
+- Toda entrega só pode ser encerrada com `flutter test` totalmente verde.
+- Testes quebrados são regressão de processo e devem ser tratados com prioridade imediata.
 
-### ⏳ Fase 2 — Auth
+### Fase 1 — Fundação (sem isto nada funciona)
 
-| # | Item | Arquivo(s) | O que fazer |
-|---|------|-----------|-------------|
-| 5 | `auth-login-dto` | `auth_remote_datasource_impl.dart` | Parsear resposta flat `{token, usuarioId, nome, email, role, expiresAt}` |
-| 6 | `auth-me-dto` | `usuario_model.dart` | Mapear `usuarioId→id`, `valorPorKmDefault` camelCase, remover `telefone` obrigatório |
-| 7 | `token-refresh` | `http_client.dart` | Interceptor de 401: chama `POST /api/auth/refresh`, salva novo token, retenta request |
+**Validação em 2026-03-25:** Fase 1 **concluída** (`4/4` itens fechados).
 
-### ⏳ Fase 3 — CRUD Core
+1. `[concluído]` `net-port-dev` — `AppConfig` não usa mais a porta antiga `10.0.2.2:3000`; os flavors apontam para URLs já com `/api`.
+2. `[concluído]` `net-baseurl` — `NetworkModule` agora injeta `Dio` já configurado com `baseUrl`, headers e interceptors, eliminando dependência implícita de inicialização lateral.
+3. `[concluído]` `json-casing` — `usuario_model.dart`, `cliente_model.dart`, `base_model.dart` e `atendimento_model.dart` passaram a serializar e desserializar diretamente em camelCase para campos e objetos.
+4. `[concluído]` `status-casing` — backend parseia entrada com `Enum.TryParse(..., ignoreCase: true)` e responde em PascalCase via `AtendimentoMapper.ToDto(...)`, alinhado ao app.
 
-| # | Item | Arquivo(s) | O que fazer |
-|---|------|-----------|-------------|
-| 8 | `atendimento-field-names` | `atendimento_model.dart` | snake_case → camelCase em todos os campos JSON |
-| 9 | `localGeo-naming` | `atendimento_model.dart` | `endereco_texto` → `enderecoTexto` em `_encodeLocalGeo` / `_decodeLocalGeo` |
-| 10 | `paged-clientes` | `cliente_remote_datasource_impl.dart` | Criar `PagedResult<T>`, extrair `items` da resposta paginada |
-| 11 | `paged-atendimentos` | `atendimento_remote_datasource_impl.dart` | Mesmo padrão de paginação |
-| 12 | `atendimento-status-patch` | `atendimento_remote_datasource.dart` + impl | Novo método `atualizarStatus()` com `PATCH /api/atendimentos/{id}/status` |
-| 13 | `base-principal-method` | `base_remote_datasource_impl.dart` | `_dio.put` → `_dio.post` em `definirPrincipal()` |
+**Conclusão da validação:** a Fase 1 segue concluída para baseUrl, casing de campos e casing de enums de atendimento.
 
-### ⏳ Fase 4 — Rastreamento & Sync
+### Fase 2 — Auth (parcialmente validada)
 
-| # | Item | Arquivo(s) | O que fazer |
-|---|------|-----------|-------------|
-| 14 | `rastreamento-impl` | `rastreamento_remote_datasource_impl.dart` *(novo)* | `enviarPontos()` → `POST /api/rastreamento/pontos` com `{pontos:[...]}`; `obterPontos()` → `GET /api/rastreamento/{id}` |
-| 15 | `sync-endpoints` | `sync_manager.dart` | `_enviarPontoRastreamento()`: path e estrutura batch corretos; registrar no DI |
-| 16 | `pull-sync` | `sync_manager.dart` *(ou novo serviço)* | `GET /api/sync/pull?desde=` após cada push; persistir clientes/atendimentos/bases no Drift |
+5. `[concluído]` `auth-login-dto` — backend real confirmado com `LoginResponse` flat; app ajustado para consumir `token`, `usuarioId`, `nome`, `email`, `role`, `expiresAt`
+6. `[concluído]` `auth-me-payload` — app ajustado para consumir `UsuarioAtualResponse` flat em `GET /auth/me`
+7. `[concluído]` `token-refresh` — interceptor de 401 com retry + refresh via `POST /auth/refresh`
 
-### ⏳ Fase 5 — Melhorias
+### Fase 3 — CRUD Core (parcialmente validada)
 
-| # | Item | Arquivo(s) | O que fazer |
-|---|------|-----------|-------------|
-| 17 | `dashboard-remote` | `dashboard_remote_datasource.dart` *(novo)* | Integrar `/api/dashboard/*`; exibir remoto se online, local se offline |
-| 18 | `cors-ssl` | `AndroidManifest.xml` | ngrok já é HTTPS — verificar para dev local futuro |
-| 19 | `seed-usuario` | — | Testar login E2E com `admin@guinchoapp.com` via Swagger ou app |
+8. `[concluído]` `atendimento-field-names` — `AtendimentoModel` já opera em camelCase
+9. `[concluído]` `localGeo-naming` — `LocalGeo` já serializa e desserializa com `enderecoTexto`
+10. `[concluído]` `paged-clientes` — criado `PagedResult` genérico e corrigido `ClienteRemoteDatasourceImpl`
+11. `[concluído]` `paged-atendimentos` — `AtendimentoRemoteDatasourceImpl` também passou a consumir `PagedResult`
+12. `[concluído]` `atendimento-status-enum-contract` — `AtendimentoMapper.ToDto(...)` retorna `status` e `tipoValor` em PascalCase, alinhado ao app
+13. `[concluído]` `atendimento-status-patch` — `atualizarStatus()` agora enfileira `status_update`, sincronizado via `PATCH /atendimentos/{id}/status`
+14. `[concluído]` `base-principal-method` — `definirPrincipal()` remoto usa `POST`
+
+### Fase 4 — Rastreamento & Sync
+
+14. `[concluído]` `rastreamento-impl` — criado `RastreamentoRemoteDatasourceImpl` para `POST /rastreamento/pontos` e `GET /rastreamento/{atendimentoId}` paginado
+15. `[concluído]` `sync-endpoints` — `SyncManager` corrigido para usar `/rastreamento/pontos` em batch e manter `PATCH` de status
+16. `[concluído]` `pull-sync` — `SyncManager` implementa download sync via `GET /sync/pull?desde=` com cursor persistido e merge local
+
+### Fase 5 — Melhorias
+
+17. `[concluído]` `dashboard-remote` — dashboard integrado com API e fallback local
+18. `cors-ssl` — configurar Android cleartext / HTTPS
+19. `seed-usuario` — testar login end-to-end
 
 ---
 
-## Decisões Arquiteturais
+## Decisão Arquitetural Chave: JSON Casing
 
-### JSON Casing — Decisão: Opção B ✅
+**Decisão consolidada:** o app Flutter passa a trabalhar diretamente em camelCase, alinhado aos DTOs documentados no workspace.
 
-Atualizar os modelos Flutter para camelCase (Fase 3), mantendo o backend intacto.  
-Razão: API já publicada via ngrok; mudança no backend quebraria compatibilidade.
+- `usuario_model.dart`, `cliente_model.dart`, `base_model.dart` e `atendimento_model.dart` serializam e desserializam em camelCase
+- `LocalGeo` usa `enderecoTexto`
+- A compatibilidade legada em snake_case foi removida por não haver necessidade real no projeto atual
 
-### baseUrl — Decisão: baseUrl no HttpClient ✅
+---
 
-`HttpClient` seta `baseUrl` via `AppConfig.instance.apiBaseUrl` no `BaseOptions`.  
-Nenhum datasource precisa incluir prefixo nos paths relativos.
+## Decisão Arquitetural: baseUrl com prefixo `/api`
+
+**Decisão consolidada:** o `Dio` injetado sai configurado com `baseUrl` completo, incluindo `/api`.
+
+```dart
+// network_module.dart
+@singleton
+Dio dio(...) => configureDio(...);
+
+// app_config.dart — dev
+apiBaseUrl: 'https://.../api'
+```
+
+- Nenhum datasource precisa mudar os paths relativos
 
 ---
 
 ## Contrato de DTOs — Diferenças Críticas
 
-### LoginResponse (Gap #4 — ⏳ Fase 2)
+### LoginResponse
 
-```
-Backend retorna (flat):          Flutter espera (aninhado):
-{                                {
-  "token": "eyJ...",               "token": "eyJ...",
-  "usuarioId": "uuid",             "usuario": {           ← NÃO EXISTE
-  "nome": "string",                  "id": "uuid",
-  "email": "string",                 "nome": "string",
-  "role": "Operador",                "telefone": "...",   ← NÃO EXISTE no login
-  "expiresAt": "2026-..."            ...
-}                                  }
-                                 }
+```json
+{
+  "token": "eyJ...",
+  "usuarioId": "uuid",
+  "nome": "string",
+  "email": "string",
+  "role": "operador",
+  "expiresAt": "2026-..."
+}
 ```
 
-### AtendimentoStatus (Gap #7 — ✅ Resolvido)
+- Esse shape foi confirmado no `AuthController` real e o app foi alinhado ao contrato flat.
 
-| Flutter `.name` | API envia/recebe | Conversor |
-|-----------------|-----------------|-----------|
-| `emDeslocamento` | `EmDeslocamento` | `toApiValue()` / `toAtendimentoStatus()` |
-| `porKm` | `PorKm` | `toApiValue()` / `toTipoValor()` |
+### UsuarioAtualResponse
+
+```json
+{
+  "usuarioId": "uuid",
+  "nome": "string",
+  "email": "string",
+  "role": "operador",
+  "valorPorKmDefault": 5.0
+}
+```
+
+- Esse shape foi confirmado no `GET /api/auth/me` real e agora é o contrato usado pelo app.
+
+### AtendimentoStatus (Enum Casing)
+
+**Atualização de validação em 2026-03-26:**
+
+- o backend confirmou `Enum.TryParse(..., ignoreCase: true)` em `CriarAtendimentoCommand` e `AtualizarStatusCommand`, então o casing de entrada está tolerante
+- `CriarAtendimentoCommand` força `Status = Rascunho` no servidor ao criar um atendimento
+- `AtendimentoMapper.ToDto(...)` usa `a.TipoValor.ToString()` e `a.Status.ToString()`, então a resposta segue PascalCase e fica alinhada ao app
+
+Com isso, os enums de atendimento ficam validados tanto na escrita quanto na leitura.
 
 ---
 
 ## Estimativa de Esforço
 
-| Fase | Itens | Status | Estimativa |
-|------|-------|--------|------------|
-| Fase 1 — Fundação | 4 | ✅ Concluída | — |
-| Fase 2 — Auth | 3 | ⏳ Pendente | 3-5h |
-| Fase 3 — CRUD Core | 6 | ⏳ Pendente | 8-12h |
-| Fase 4 — Rastreamento/Sync | 3 | ⏳ Pendente | 6-10h |
-| Fase 5 — Melhorias | 3 | ⏳ Pendente | 4-6h |
-| **Restante** | **15** | | **~21-33h** |
-
+| Fase                       | Itens  | Complexidade | Estimativa  |
+| -------------------------- | ------ | ------------ | ----------- |
+| Fase 1 — Fundação          | 4      | Baixa        | 2-4h        |
+| Fase 2 — Auth              | 3      | Média        | 3-5h        |
+| Fase 3 — CRUD Core         | 6      | Média/Alta   | 8-12h       |
+| Fase 4 — Rastreamento/Sync | 3      | Alta         | 6-10h       |
+| Fase 5 — Melhorias         | 3      | Baixa/Média  | 4-6h        |
+| **Total**                  | **19** |              | **~23-37h** |

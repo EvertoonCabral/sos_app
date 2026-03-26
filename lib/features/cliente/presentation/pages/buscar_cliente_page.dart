@@ -37,8 +37,14 @@ class _BuscarClientePageState extends State<BuscarClientePage> {
   }
 
   void _abrirFormCriar() async {
+    final bloc = context.read<ClienteBloc>();
     final resultado = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => const FormClientePage()),
+      MaterialPageRoute(
+        builder: (_) => BlocProvider.value(
+          value: bloc,
+          child: const FormClientePage(),
+        ),
+      ),
     );
     if (resultado == true && mounted) {
       context
@@ -48,9 +54,13 @@ class _BuscarClientePageState extends State<BuscarClientePage> {
   }
 
   void _abrirFormEditar(Cliente cliente) async {
+    final bloc = context.read<ClienteBloc>();
     final resultado = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
-        builder: (_) => FormClientePage(cliente: cliente),
+        builder: (_) => BlocProvider.value(
+          value: bloc,
+          child: FormClientePage(cliente: cliente),
+        ),
       ),
     );
     if (resultado == true && mounted) {

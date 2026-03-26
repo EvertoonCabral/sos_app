@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 
+import '../../../../core/geo/geo_service.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/error_state_widget.dart';
 import '../bloc/base_bloc.dart';
 import '../bloc/base_event.dart';
 import '../bloc/base_state.dart';
 import '../../domain/entities/base.dart';
+import 'form_base_page.dart';
 
 class GestaoBasesPage extends StatefulWidget {
   const GestaoBasesPage({super.key});
@@ -26,11 +29,31 @@ class _GestaoBasesPageState extends State<GestaoBasesPage> {
     context.read<BaseBloc>().add(DefinirBasePrincipalEvent(baseId));
   }
 
+  void _abrirFormCriar() async {
+    final bloc = context.read<BaseBloc>();
+    final resultado = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => BlocProvider.value(
+          value: bloc,
+          child: FormBasePage(geoService: GetIt.I<GeoService>()),
+        ),
+      ),
+    );
+    if (resultado == true && mounted) {
+      bloc.add(const ListarBasesEvent());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Bases / Garagens'),
+      ),
+      floatingActionButton: FloatingActionButton(
+        key: const Key('addBaseButton'),
+        onPressed: _abrirFormCriar,
+        child: const Icon(Icons.add),
       ),
       body: BlocBuilder<BaseBloc, BaseState>(
         builder: (context, state) {
