@@ -31,7 +31,10 @@ class RankingClientesWidget extends StatelessWidget {
           children: [
             Text(
               'Ranking de Clientes',
-              style: Theme.of(context).textTheme.titleMedium,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
             ),
             const SizedBox(height: 12),
             ...ranking.asMap().entries.map((entry) {

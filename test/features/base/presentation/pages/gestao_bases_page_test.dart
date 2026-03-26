@@ -88,13 +88,18 @@ void main() {
       expect(find.text('Erro de leitura'), findsOneWidget);
     });
 
-    testWidgets('deve disparar DefinirBasePrincipalEvent ao clicar Definir',
+    testWidgets('deve disparar DefinirBasePrincipalEvent ao confirmar Definir',
         (tester) async {
       when(() => mockBloc.state).thenReturn(BaseListaCarregada(tBases));
       await tester.pumpWidget(buildPage());
 
       await tester.tap(find.byKey(const Key('setPrincipal_base-002')));
-      await tester.pump();
+      await tester.pumpAndSettle();
+
+      // Confirm the dialog
+      await tester
+          .tap(find.byKey(const Key('confirmarDefinirPrincipalButton')));
+      await tester.pumpAndSettle();
 
       verify(
         () => mockBloc.add(const DefinirBasePrincipalEvent('base-002')),

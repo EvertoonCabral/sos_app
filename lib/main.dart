@@ -7,6 +7,7 @@ import 'package:get_it/get_it.dart';
 import 'core/constants/app_config.dart';
 import 'core/di/injection.dart';
 import 'core/routing/auth_gate.dart';
+import 'core/theme/app_theme.dart';
 import 'core/utils/app_bloc_observer.dart';
 import 'core/utils/app_logger.dart';
 import 'features/auth/domain/repositories/auth_repository.dart';
@@ -60,10 +61,7 @@ class GuinchoApp extends StatelessWidget {
       child: MaterialApp(
         title: AppConfig.instance.appName,
         debugShowCheckedModeBanner: !AppConfig.instance.isProd,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
-          useMaterial3: true,
-        ),
+        theme: AppTheme.light(),
         home: const AuthGate(),
       ),
     );

@@ -36,7 +36,10 @@ class GraficoAtendimentosWidget extends StatelessWidget {
           children: [
             Text(
               'Atendimentos por Dia',
-              style: Theme.of(context).textTheme.titleMedium,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
             ),
             const SizedBox(height: 16),
             SizedBox(

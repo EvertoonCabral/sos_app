@@ -20,6 +20,9 @@ class AppConfig {
   final String appName;
   final bool enableLogging;
 
+  /// Versão do app — manter sincronizado com pubspec.yaml.
+  static const String appVersion = '1.0.0+1';
+
   static const _flavorStr =
       String.fromEnvironment('FLAVOR', defaultValue: 'dev');
 
@@ -37,14 +40,16 @@ class AppConfig {
       case 'staging':
         return const AppConfig._(
           flavor: Flavor.staging,
-          apiBaseUrl: 'https://burghal-klara-nonextraneously.ngrok-free.dev/api',
+          apiBaseUrl:
+              'https://burghal-klara-nonextraneously.ngrok-free.dev/api',
           appName: 'GuinchoApp [STG]',
           enableLogging: true,
         );
       default:
         return const AppConfig._(
           flavor: Flavor.dev,
-          apiBaseUrl: 'https://burghal-klara-nonextraneously.ngrok-free.dev/api',
+          apiBaseUrl:
+              'https://burghal-klara-nonextraneously.ngrok-free.dev/api',
           appName: 'GuinchoApp [DEV]',
           enableLogging: true,
         );

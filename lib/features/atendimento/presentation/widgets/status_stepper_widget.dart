@@ -44,16 +44,24 @@ class StatusStepperWidget extends StatelessWidget {
           avatar: Icon(Icons.cancel, color: Colors.white),
           label: Text('Cancelado', style: TextStyle(color: Colors.white)),
           backgroundColor: Colors.red,
+          side: BorderSide.none,
         ),
       );
     }
 
     final currentIdx = _currentStepIndex;
+    final theme = Theme.of(context);
 
     return Stepper(
       key: const Key('statusStepper'),
       currentStep: currentIdx < 0 ? 0 : currentIdx,
       controlsBuilder: (context, details) => const SizedBox.shrink(),
+      connectorColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.selected)) {
+          return theme.colorScheme.primary;
+        }
+        return const Color(0xFFE8EAED);
+      }),
       steps: List.generate(_etapas.length, (i) {
         final etapa = _etapas[i];
         StepState stepState;
@@ -66,7 +74,15 @@ class StatusStepperWidget extends StatelessWidget {
         }
 
         return Step(
-          title: Text(_labels[etapa]!),
+          title: Text(
+            _labels[etapa]!,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: i <= currentIdx ? FontWeight.w600 : FontWeight.w400,
+              color: i <= currentIdx
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.outline,
+            ),
+          ),
           content: const SizedBox.shrink(),
           isActive: i <= currentIdx,
           state: stepState,

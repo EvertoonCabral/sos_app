@@ -189,7 +189,7 @@ class _NovoAtendimentoPageState extends State<NovoAtendimentoPage> {
                 controller: _observacoesController,
                 decoration: const InputDecoration(
                   labelText: 'Observações (opcional)',
-                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.notes_outlined),
                 ),
                 maxLines: 3,
               ),

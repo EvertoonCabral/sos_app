@@ -31,88 +31,175 @@ import '../../domain/usecases/obter_km_por_cliente.dart';
 import '../../domain/usecases/obter_resumo_periodo.dart';
 import '../../domain/usecases/obter_tempo_por_etapa.dart';
 import '../cubit/dashboard_cubit.dart';
-import 'dashboard_page.dart';
+import '../cubit/dashboard_state.dart';
+import '../widgets/grafico_atendimentos_widget.dart';
+import '../widgets/metricas_cards_widget.dart';
+import '../widgets/ranking_clientes_widget.dart';
+import '../widgets/seletor_periodo_widget.dart';
+import '../widgets/tempo_por_etapa_widget.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final state = context.watch<AuthBloc>().state;
-    final nomeUsuario =
-        state is AuthAutenticado ? state.usuario.nome : 'Usuário';
+  State<HomePage> createState() => _HomePageState();
+}
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('GuinchoApp'),
+class _HomePageState extends State<HomePage> {
+  late final DashboardCubit _dashboardCubit;
+
+  @override
+  void initState() {
+    super.initState();
+    _dashboardCubit = DashboardCubit(
+      obterResumoPeriodo: GetIt.I<ObterResumoPeriodo>(),
+      obterKmPorCliente: GetIt.I<ObterKmPorCliente>(),
+      obterTempoPorEtapa: GetIt.I<ObterTempoPorEtapa>(),
+      dashboardRepository: GetIt.I<DashboardRepository>(),
+    )..carregarMes();
+  }
+
+  @override
+  void dispose() {
+    _dashboardCubit.close();
+    super.dispose();
+  }
+
+  Future<void> _confirmarLogout(BuildContext context) async {
+    final confirmou = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Sair do app'),
+        content: const Text('Tem certeza que deseja sair?'),
         actions: [
-          IconButton(
-            key: const Key('logoutButton'),
-            icon: const Icon(Icons.logout),
-            onPressed: () =>
-                context.read<AuthBloc>().add(const LogoutSolicitado()),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Não'),
+          ),
+          ElevatedButton(
+            key: const Key('confirmarLogoutButton'),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Sim, sair'),
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Bem-vindo, $nomeUsuario!',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 24),
-            _MenuCard(
-              key: const Key('menuDashboard'),
-              icon: Icons.dashboard,
-              title: 'Dashboard',
-              subtitle: 'Métricas e relatórios',
-              onTap: () => _abrirDashboard(context),
-            ),
-            const SizedBox(height: 12),
-            _MenuCard(
-              key: const Key('menuAtendimentos'),
-              icon: Icons.local_shipping,
-              title: 'Atendimentos',
-              subtitle: 'Gerenciar ordens de serviço',
-              onTap: () => _abrirAtendimentos(context),
-            ),
-            const SizedBox(height: 12),
-            _MenuCard(
-              key: const Key('menuClientes'),
-              icon: Icons.people,
-              title: 'Clientes',
-              subtitle: 'Buscar e cadastrar clientes',
-              onTap: () => _abrirClientes(context),
-            ),
-            const SizedBox(height: 12),
-            _MenuCard(
-              key: const Key('menuBases'),
-              icon: Icons.warehouse,
-              title: 'Bases / Garagens',
-              subtitle: 'Gerenciar pontos de saída',
-              onTap: () => _abrirBases(context),
+    );
+    if (confirmou == true && context.mounted) {
+      context.read<AuthBloc>().add(const LogoutSolicitado());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final authState = context.watch<AuthBloc>().state;
+    final nomeUsuario =
+        authState is AuthAutenticado ? authState.usuario.nome : 'Usuário';
+    final emailUsuario =
+        authState is AuthAutenticado ? authState.usuario.email : '';
+    final theme = Theme.of(context);
+
+    return BlocProvider.value(
+      value: _dashboardCubit,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('GuinchoApp'),
+              Text(
+                'Olá, $nomeUsuario',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: Colors.white.withValues(alpha: 0.8),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            IconButton(
+              key: const Key('logoutButton'),
+              icon: const Icon(Icons.logout),
+              onPressed: () => _confirmarLogout(context),
             ),
           ],
         ),
+        drawer: Drawer(
+          key: const Key('appDrawer'),
+          child: Column(
+            children: [
+              UserAccountsDrawerHeader(
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary,
+                ),
+                currentAccountPicture: CircleAvatar(
+                  backgroundColor: theme.colorScheme.secondaryContainer,
+                  child: Icon(
+                    Icons.person,
+                    size: 40,
+                    color: theme.colorScheme.secondary,
+                  ),
+                ),
+                accountName: Text(
+                  nomeUsuario,
+                  key: const Key('drawerUserName'),
+                ),
+                accountEmail: Text(
+                  emailUsuario,
+                  key: const Key('drawerUserEmail'),
+                ),
+              ),
+              ListTile(
+                key: const Key('menuDashboard'),
+                leading: const Icon(Icons.dashboard),
+                title: const Text('Dashboard'),
+                selected: true,
+                onTap: () => Navigator.of(context).pop(),
+              ),
+              ListTile(
+                key: const Key('menuAtendimentos'),
+                leading: const Icon(Icons.local_shipping),
+                title: const Text('Atendimentos'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _abrirAtendimentos(context);
+                },
+              ),
+              ListTile(
+                key: const Key('menuClientes'),
+                leading: const Icon(Icons.people),
+                title: const Text('Clientes'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _abrirClientes(context);
+                },
+              ),
+              ListTile(
+                key: const Key('menuBases'),
+                leading: const Icon(Icons.warehouse),
+                title: const Text('Bases / Garagens'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _abrirBases(context);
+                },
+              ),
+              const Spacer(),
+              const Divider(),
+              ListTile(
+                key: const Key('menuLogout'),
+                leading: const Icon(Icons.logout),
+                title: const Text('Sair'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _confirmarLogout(context);
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+        // Dashboard inline as main content
+        body: _DashboardBody(cubit: _dashboardCubit),
       ),
     );
-  }
-
-  void _abrirDashboard(BuildContext context) {
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => BlocProvider(
-        create: (_) => DashboardCubit(
-          obterResumoPeriodo: GetIt.I<ObterResumoPeriodo>(),
-          obterKmPorCliente: GetIt.I<ObterKmPorCliente>(),
-          obterTempoPorEtapa: GetIt.I<ObterTempoPorEtapa>(),
-          dashboardRepository: GetIt.I<DashboardRepository>(),
-        ),
-        child: const DashboardPage(),
-      ),
-    ));
   }
 
   void _abrirAtendimentos(BuildContext context) {
@@ -168,32 +255,98 @@ class HomePage extends StatelessWidget {
   }
 }
 
-class _MenuCard extends StatelessWidget {
-  const _MenuCard({
-    super.key,
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
+/// Dashboard content inlined in HomePage.
+class _DashboardBody extends StatelessWidget {
+  const _DashboardBody({required this.cubit});
 
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
+  final DashboardCubit cubit;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: ListTile(
-        leading: CircleAvatar(
-          child: Icon(icon),
+    return Column(
+      children: [
+        // Gradient header with period selector
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Theme.of(context).colorScheme.primary,
+                Theme.of(context).colorScheme.primaryContainer,
+              ],
+            ),
+            borderRadius: const BorderRadius.vertical(
+              bottom: Radius.circular(24),
+            ),
+          ),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+          child: SeletorPeriodoWidget(
+            onPeriodoSelecionado: (tipo, inicio, fim) {
+              cubit.carregarDashboard(inicio: inicio, fim: fim);
+            },
+          ),
         ),
-        title: Text(title),
-        subtitle: Text(subtitle),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onTap,
-      ),
+        Expanded(
+          child: BlocBuilder<DashboardCubit, DashboardState>(
+            builder: (context, state) {
+              if (state is DashboardCarregando) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (state is DashboardErro) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline,
+                          size: 48, color: Colors.red),
+                      const SizedBox(height: 16),
+                      Text(state.mensagem),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () => cubit.carregarMes(),
+                        child: const Text('Tentar novamente'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              if (state is DashboardCarregado) {
+                return RefreshIndicator(
+                  onRefresh: () => cubit.carregarDashboard(
+                    inicio: state.inicio,
+                    fim: state.fim,
+                  ),
+                  child: ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      MetricasCardsWidget(resumo: state.resumo),
+                      const SizedBox(height: 16),
+                      GraficoAtendimentosWidget(
+                        atendimentosPorDia: state.atendimentosPorDia,
+                      ),
+                      const SizedBox(height: 16),
+                      TempoPorEtapaWidget(
+                        tempoPorEtapa: state.tempoPorEtapa,
+                      ),
+                      const SizedBox(height: 16),
+                      RankingClientesWidget(
+                        ranking: state.rankingClientes,
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                );
+              }
+
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      ],
     );
   }
 }

@@ -142,45 +142,60 @@ class _DetalheAtendimentoPageState extends State<DetalheAtendimentoPage> {
               _InfoCard(
                 title: 'Ponto de Saída',
                 texto: widget.atendimento.pontoDeSaida.enderecoTexto,
+                icon: Icons.trip_origin,
               ),
               _InfoCard(
                 title: 'Local de Coleta',
                 texto: widget.atendimento.localDeColeta.enderecoTexto,
+                icon: Icons.download_outlined,
               ),
               _InfoCard(
                 title: 'Local de Entrega',
                 texto: widget.atendimento.localDeEntrega.enderecoTexto,
+                icon: Icons.upload_outlined,
               ),
               _InfoCard(
                 title: 'Local de Retorno',
                 texto: widget.atendimento.localDeRetorno.enderecoTexto,
+                icon: Icons.home_outlined,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
 
               // --- Info de valores ---
               Card(
                 margin: const EdgeInsets.symmetric(vertical: 4),
                 child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
                     children: [
-                      Text(
-                        'Distância Estimada: '
-                        '${widget.atendimento.distanciaEstimadaKm.toStringAsFixed(1)} km',
+                      Expanded(
+                        child: _MetricItem(
+                          valor: widget.atendimento.distanciaEstimadaKm
+                              .toStringAsFixed(1),
+                          rotulo: 'km estimado',
+                        ),
                       ),
                       if (widget.atendimento.valorCobrado != null)
-                        Text(
-                          'Valor: R\$ ${widget.atendimento.valorCobrado!.toStringAsFixed(2)}',
+                        Expanded(
+                          child: _MetricItem(
+                            valor:
+                                'R\$ ${widget.atendimento.valorCobrado!.toStringAsFixed(2)}',
+                            rotulo: 'valor',
+                          ),
                         ),
-                      Text(
-                        'Tipo: ${widget.atendimento.tipoValor == TipoValor.fixo ? "Fixo" : "Por KM"}',
+                      Expanded(
+                        child: _MetricItem(
+                          valor: widget.atendimento.tipoValor == TipoValor.fixo
+                              ? 'Fixo'
+                              : 'Por KM',
+                          rotulo: 'tipo',
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
 
               // --- Status e observações ---
               Text(
@@ -217,51 +232,117 @@ class _DetalheAtendimentoPageState extends State<DetalheAtendimentoPage> {
     return BlocBuilder<AtendimentoBloc, AtendimentoState>(
       builder: (context, state) {
         final loading = state is AtendimentoCarregando;
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                // Cancelar
-                if (widget.atendimento.status != AtendimentoStatus.concluido)
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                offset: const Offset(0, -2),
+                blurRadius: 8,
+                color: Colors.black.withValues(alpha: 0.06),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  // Cancelar
+                  if (widget.atendimento.status != AtendimentoStatus.concluido)
+                    Expanded(
+                      child: OutlinedButton(
+                        key: const Key('cancelarAtendimentoButton'),
+                        onPressed: loading
+                            ? null
+                            : () async {
+                                final confirmou = await showDialog<bool>(
+                                  context: context,
+                                  builder: (ctx) => AlertDialog(
+                                    title: const Text('Cancelar atendimento'),
+                                    content: const Text(
+                                      'Tem certeza que deseja cancelar este atendimento?',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.of(ctx).pop(false),
+                                        child: const Text('Não'),
+                                      ),
+                                      ElevatedButton(
+                                        key: const Key(
+                                            'confirmarCancelarButton'),
+                                        onPressed: () =>
+                                            Navigator.of(ctx).pop(true),
+                                        child: const Text('Sim, cancelar'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                if (confirmou == true && context.mounted) {
+                                  context.read<AtendimentoBloc>().add(
+                                        AtualizarStatusEvent(
+                                          atendimento: widget.atendimento,
+                                          novoStatus:
+                                              AtendimentoStatus.cancelado,
+                                        ),
+                                      );
+                                }
+                              },
+                        child: const Text('Cancelar'),
+                      ),
+                    ),
+                  const SizedBox(width: 12),
+                  // Avançar
                   Expanded(
-                    child: OutlinedButton(
-                      key: const Key('cancelarAtendimentoButton'),
+                    flex: 2,
+                    child: ElevatedButton(
+                      key: const Key('avancarStatusButton'),
                       onPressed: loading
                           ? null
-                          : () => context.read<AtendimentoBloc>().add(
-                                AtualizarStatusEvent(
-                                  atendimento: widget.atendimento,
-                                  novoStatus: AtendimentoStatus.cancelado,
+                          : () async {
+                              final confirmou = await showDialog<bool>(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  title: const Text('Avançar status'),
+                                  content: Text(
+                                    'Deseja avançar para "${_proximoStatusLabel()}"?',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(ctx).pop(false),
+                                      child: const Text('Não'),
+                                    ),
+                                    ElevatedButton(
+                                      key: const Key('confirmarAvancarButton'),
+                                      onPressed: () =>
+                                          Navigator.of(ctx).pop(true),
+                                      child: const Text('Sim, avançar'),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                      child: const Text('Cancelar'),
+                              );
+                              if (confirmou == true && context.mounted) {
+                                context.read<AtendimentoBloc>().add(
+                                      AtualizarStatusEvent(
+                                        atendimento: widget.atendimento,
+                                        novoStatus: proximo,
+                                      ),
+                                    );
+                              }
+                            },
+                      child: loading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(_proximoStatusLabel()),
                     ),
                   ),
-                const SizedBox(width: 12),
-                // Avançar
-                Expanded(
-                  flex: 2,
-                  child: ElevatedButton(
-                    key: const Key('avancarStatusButton'),
-                    onPressed: loading
-                        ? null
-                        : () => context.read<AtendimentoBloc>().add(
-                              AtualizarStatusEvent(
-                                atendimento: widget.atendimento,
-                                novoStatus: proximo,
-                              ),
-                            ),
-                    child: loading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(_proximoStatusLabel()),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -271,20 +352,77 @@ class _DetalheAtendimentoPageState extends State<DetalheAtendimentoPage> {
 }
 
 class _InfoCard extends StatelessWidget {
-  const _InfoCard({required this.title, required this.texto});
+  const _InfoCard({
+    required this.title,
+    required this.texto,
+    this.icon = Icons.location_on_outlined,
+  });
 
   final String title;
   final String texto;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4),
-      child: ListTile(
-        leading: const Icon(Icons.location_on_outlined),
-        title: Text(title),
-        subtitle: Text(texto),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            Icon(icon, color: theme.colorScheme.primary, size: 24),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: theme.textTheme.titleMedium),
+                  const SizedBox(height: 2),
+                  Text(
+                    texto,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.outline,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+}
+
+class _MetricItem extends StatelessWidget {
+  const _MetricItem({required this.valor, required this.rotulo});
+
+  final String valor;
+  final String rotulo;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        Text(
+          valor,
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: theme.colorScheme.secondary,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 2),
+        Text(
+          rotulo,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.outline,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
     );
   }
 }

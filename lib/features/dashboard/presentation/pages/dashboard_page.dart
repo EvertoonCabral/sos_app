@@ -34,8 +34,23 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
+          // Gradient header with period selector
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Theme.of(context).colorScheme.primary,
+                  Theme.of(context).colorScheme.primaryContainer,
+                ],
+              ),
+              borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(24),
+              ),
+            ),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
             child: SeletorPeriodoWidget(
               onPeriodoSelecionado: (tipo, inicio, fim) {
                 context.read<DashboardCubit>().carregarDashboard(
@@ -80,18 +95,18 @@ class _DashboardPageState extends State<DashboardPage> {
                               fim: state.fim,
                             ),
                     child: ListView(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      padding: const EdgeInsets.all(16),
                       children: [
                         MetricasCardsWidget(resumo: state.resumo),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
                         GraficoAtendimentosWidget(
                           atendimentosPorDia: state.atendimentosPorDia,
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
                         TempoPorEtapaWidget(
                           tempoPorEtapa: state.tempoPorEtapa,
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
                         RankingClientesWidget(
                           ranking: state.rankingClientes,
                         ),

@@ -91,7 +91,6 @@ class _BuscarClientePageState extends State<BuscarClientePage> {
               decoration: InputDecoration(
                 hintText: 'Buscar cliente...',
                 prefixIcon: const Icon(Icons.search),
-                border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.clear),
                   onPressed: () {
@@ -124,16 +123,39 @@ class _BuscarClientePageState extends State<BuscarClientePage> {
                   }
                   return ListView.builder(
                     itemCount: state.clientes.length,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     itemBuilder: (context, index) {
                       final c = state.clientes[index];
-                      return ListTile(
+                      return Card(
                         key: Key('clienteTile_${c.id}'),
-                        leading: const CircleAvatar(
-                          child: Icon(Icons.person),
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 4,
+                          ),
+                          leading: CircleAvatar(
+                            backgroundColor: Theme.of(context)
+                                .colorScheme
+                                .secondaryContainer,
+                            child: Icon(
+                              Icons.person,
+                              color: Theme.of(context).colorScheme.secondary,
+                            ),
+                          ),
+                          title: Text(
+                            c.nome,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                          subtitle: Text(c.telefone),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () => _abrirFormEditar(c),
                         ),
-                        title: Text(c.nome),
-                        subtitle: Text(c.telefone),
-                        onTap: () => _abrirFormEditar(c),
                       );
                     },
                   );

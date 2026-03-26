@@ -31,6 +31,23 @@ class _SeletorPeriodoWidgetState extends State<SeletorPeriodoWidget> {
   @override
   Widget build(BuildContext context) {
     return SegmentedButton<PeriodoTipo>(
+      style: ButtonStyle(
+        foregroundColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return Theme.of(context).colorScheme.primary;
+          }
+          return Colors.white;
+        }),
+        iconColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return Theme.of(context).colorScheme.primary;
+          }
+          return Colors.white;
+        }),
+        side: WidgetStateProperty.all(
+          const BorderSide(color: Colors.white54),
+        ),
+      ),
       segments: const [
         ButtonSegment(
           value: PeriodoTipo.hoje,
@@ -100,7 +117,6 @@ class _SeletorPeriodoWidgetState extends State<SeletorPeriodoWidget> {
       context: context,
       firstDate: DateTime(2020),
       lastDate: DateTime.now().add(const Duration(days: 1)),
-      locale: const Locale('pt', 'BR'),
     );
 
     if (range != null && mounted) {
