@@ -65,6 +65,19 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
+  void _recarregarDashboard() {
+    if (!mounted) return;
+    final current = _dashboardCubit.state;
+    if (current is DashboardCarregado) {
+      _dashboardCubit.carregarDashboard(
+        inicio: current.inicio,
+        fim: current.fim,
+      );
+    } else {
+      _dashboardCubit.carregarMes();
+    }
+  }
+
   Future<void> _confirmarLogout(BuildContext context) async {
     final confirmou = await showDialog<bool>(
       context: context,
@@ -203,29 +216,32 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _abrirAtendimentos(BuildContext context) {
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => MultiBlocProvider(
-        providers: [
-          BlocProvider(
-            create: (_) => AtendimentoBloc(
-              criarAtendimento: GetIt.I<CriarAtendimento>(),
-              listarAtendimentos: GetIt.I<ListarAtendimentos>(),
-              atualizarStatusAtendimento: GetIt.I<AtualizarStatusAtendimento>(),
-            ),
+    Navigator.of(context)
+        .push(MaterialPageRoute(
+          builder: (_) => MultiBlocProvider(
+            providers: [
+              BlocProvider(
+                create: (_) => AtendimentoBloc(
+                  criarAtendimento: GetIt.I<CriarAtendimento>(),
+                  listarAtendimentos: GetIt.I<ListarAtendimentos>(),
+                  atualizarStatusAtendimento:
+                      GetIt.I<AtualizarStatusAtendimento>(),
+                ),
+              ),
+              BlocProvider(
+                create: (_) => RastreamentoBloc(
+                  registrarPonto: GetIt.I<RegistrarPonto>(),
+                  obterPercurso: GetIt.I<ObterPercurso>(),
+                  calcularValorReal: GetIt.I<CalcularValorReal>(),
+                  distanceCalculator: GetIt.I<DistanceCalculator>(),
+                  gpsCollector: GetIt.I<GpsCollector>(),
+                ),
+              ),
+            ],
+            child: const ListaAtendimentosPage(),
           ),
-          BlocProvider(
-            create: (_) => RastreamentoBloc(
-              registrarPonto: GetIt.I<RegistrarPonto>(),
-              obterPercurso: GetIt.I<ObterPercurso>(),
-              calcularValorReal: GetIt.I<CalcularValorReal>(),
-              distanceCalculator: GetIt.I<DistanceCalculator>(),
-              gpsCollector: GetIt.I<GpsCollector>(),
-            ),
-          ),
-        ],
-        child: const ListaAtendimentosPage(),
-      ),
-    ));
+        ))
+        .then((_) => _recarregarDashboard());
   }
 
   void _abrirClientes(BuildContext context) {

@@ -159,6 +159,8 @@ void main() {
         final atualizado = atendimentoFake.copyWith(
           status: AtendimentoStatus.emDeslocamento,
         );
+        // Nenhum atendimento em andamento
+        when(() => mockListar(status: null)).thenAnswer((_) async => []);
         when(() => mockAtualizarStatus(
               atendimento: any(named: 'atendimento'),
               novoStatus: any(named: 'novoStatus'),
@@ -174,6 +176,39 @@ void main() {
         AtendimentoStatusAtualizado(atendimentoFake.copyWith(
           status: AtendimentoStatus.emDeslocamento,
         )),
+      ],
+    );
+
+    blocTest<AtendimentoBloc, AtendimentoState>(
+      'emite [Erro] ao tentar iniciar quando há atendimento em andamento',
+      build: () {
+        final inProgress = Atendimento(
+          id: 'at-outro',
+          clienteId: 'c2',
+          usuarioId: 'u1',
+          pontoDeSaida: local,
+          localDeColeta: local,
+          localDeEntrega: local,
+          localDeRetorno: local,
+          distanciaEstimadaKm: 10.0,
+          valorPorKm: 5.0,
+          tipoValor: TipoValor.porKm,
+          status: AtendimentoStatus.emDeslocamento,
+          criadoEm: DateTime(2024),
+          atualizadoEm: DateTime(2024),
+        );
+        when(() => mockListar(status: null))
+            .thenAnswer((_) async => [inProgress]);
+        return bloc;
+      },
+      act: (b) => b.add(AtualizarStatusEvent(
+        atendimento: atendimentoFake,
+        novoStatus: AtendimentoStatus.emDeslocamento,
+      )),
+      expect: () => [
+        const AtendimentoErro(
+          'Finalize o atendimento em andamento antes de iniciar um novo.',
+        ),
       ],
     );
 

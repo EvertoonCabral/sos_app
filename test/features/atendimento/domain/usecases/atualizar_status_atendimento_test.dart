@@ -161,6 +161,31 @@ void main() {
       );
     });
 
+    test(
+        'concluido porKm usa distanciaEstimada como fallback quando sem GPS',
+        () async {
+      when(() => mockRepository.atualizarStatus(any())).thenAnswer(
+        (inv) async => inv.positionalArguments[0] as Atendimento,
+      );
+      // Simula ausência de GPS points
+      when(() => mockCalcularValorReal(
+            atendimentoId: any(named: 'atendimentoId'),
+            valorPorKm: any(named: 'valorPorKm'),
+          )).thenThrow(const ValidationFailure(
+        message: 'Nenhum ponto de rastreamento encontrado',
+      ));
+
+      final result = await usecase(
+        atendimento: buildAtendimento(status: AtendimentoStatus.retornando),
+        novoStatus: AtendimentoStatus.concluido,
+      );
+
+      // distanciaEstimadaKm = 10.0, valorPorKm = 5.0
+      expect(result.status, AtendimentoStatus.concluido);
+      expect(result.distanciaRealKm, 10.0);
+      expect(result.valorCobrado, 50.0);
+    });
+
     test('rascunho → cancelado deve ser permitido', () async {
       when(() => mockRepository.atualizarStatus(any())).thenAnswer(
         (inv) async => inv.positionalArguments[0] as Atendimento,

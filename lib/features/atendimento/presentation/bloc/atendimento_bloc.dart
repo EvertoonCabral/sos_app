@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/error/failures.dart';
+import '../../domain/entities/atendimento_enums.dart';
 import '../../domain/usecases/atualizar_status_atendimento.dart';
 import '../../domain/usecases/criar_atendimento.dart';
 import '../../domain/usecases/listar_atendimentos.dart';
@@ -67,6 +68,31 @@ class AtendimentoBloc extends Bloc<AtendimentoEvent, AtendimentoState> {
     AtualizarStatusEvent event,
     Emitter<AtendimentoState> emit,
   ) async {
+    // RN: Não permitir iniciar um atendimento enquanto outro está em andamento.
+    if (event.novoStatus == AtendimentoStatus.emDeslocamento) {
+      try {
+        final todos = await _listarAtendimentos();
+        const inProgress = [
+          AtendimentoStatus.emDeslocamento,
+          AtendimentoStatus.emColeta,
+          AtendimentoStatus.emEntrega,
+          AtendimentoStatus.retornando,
+        ];
+        final emAndamento = todos.where(
+          (a) => a.id != event.atendimento.id && inProgress.contains(a.status),
+        );
+        if (emAndamento.isNotEmpty) {
+          emit(const AtendimentoErro(
+            'Finalize o atendimento em andamento antes de iniciar um novo.',
+          ));
+          return;
+        }
+      } on Failure catch (f) {
+        emit(AtendimentoErro(f.message));
+        return;
+      }
+    }
+
     emit(const AtendimentoCarregando());
     try {
       final atualizado = await _atualizarStatus(

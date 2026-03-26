@@ -45,14 +45,30 @@ class AtualizarStatusAtendimento {
       case AtendimentoStatus.concluido:
         atualizado = atualizado.copyWith(concluidoEm: now);
         if (atendimento.tipoValor == TipoValor.porKm) {
-          final valorCobrado = await _calcularValorReal(
-            atendimentoId: atendimento.id,
-            valorPorKm: atendimento.valorPorKm,
-          );
-          atualizado = atualizado.copyWith(
-            distanciaRealKm: valorCobrado / atendimento.valorPorKm,
-            valorCobrado: valorCobrado,
-          );
+          try {
+            final valorCobrado = await _calcularValorReal(
+              atendimentoId: atendimento.id,
+              valorPorKm: atendimento.valorPorKm,
+            );
+            atualizado = atualizado.copyWith(
+              distanciaRealKm: valorCobrado / atendimento.valorPorKm,
+              valorCobrado: valorCobrado,
+            );
+          } on ValidationFailure {
+            // Fallback: sem pontos GPS — usa distância estimada
+            final distancia = atendimento.distanciaEstimadaKm;
+            atualizado = atualizado.copyWith(
+              distanciaRealKm: distancia,
+              valorCobrado: distancia * atendimento.valorPorKm,
+            );
+          }
+        } else {
+          // tipoValor == fixo: garante que valorCobrado está definido
+          if (atualizado.valorCobrado == null) {
+            atualizado = atualizado.copyWith(
+              valorCobrado: atendimento.valorPorKm,
+            );
+          }
         }
         break;
       default:

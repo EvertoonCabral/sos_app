@@ -53,24 +53,28 @@ class DashboardLocalDatasourceImpl implements DashboardLocalDatasource {
       receitaTotal += a.valorCobrado ?? 0;
     }
 
-    // Contagem total de atendimentos no período (criados no período)
+    // Contagem por status — usa concluidoEm/criadoEm conforme semântica:
+    // totalConcluidos: concluídos NO período (consistente com km/receita)
+    // totalAtendimentos, totalCancelados, totalEmAndamento: criados no período
     final todos = await (_db.select(_db.atendimentos)
           ..where((t) =>
               t.criadoEm.isBiggerOrEqualValue(inicio) &
               t.criadoEm.isSmallerOrEqualValue(fim)))
         .get();
 
-    int totalConcluidos = 0;
+    // totalConcluidos: mesma base do kmCobrado/receitaTotal (por concluidoEm)
+    final totalConcluidos = concluidos.length;
+
     int totalCancelados = 0;
     int totalEmAndamento = 0;
 
     for (final a in todos) {
       switch (a.status) {
-        case 'concluido':
-          totalConcluidos++;
-          break;
         case 'cancelado':
           totalCancelados++;
+          break;
+        case 'concluido':
+          // já contabilizado em totalConcluidos
           break;
         default:
           totalEmAndamento++;
