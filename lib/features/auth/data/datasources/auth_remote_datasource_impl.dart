@@ -33,8 +33,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       return AuthLoginResponse.fromJson(data);
     } on DioException catch (e) {
       throw ServerException(
-        message:
-            e.response?.data?['message']?.toString() ?? 'Erro ao autenticar',
+        message: _extrairMensagemErro(e) ?? 'Erro ao autenticar',
         statusCode: e.response?.statusCode,
       );
     }
@@ -56,8 +55,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       return AuthLoginResponse.fromJson(data);
     } on DioException catch (e) {
       throw ServerException(
-        message: e.response?.data?['message']?.toString() ??
-            'Erro ao renovar autenticação',
+        message: _extrairMensagemErro(e) ?? 'Erro ao renovar autenticação',
         statusCode: e.response?.statusCode,
       );
     }
@@ -79,10 +77,21 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       return UsuarioModel.fromCurrentUserJson(data);
     } on DioException catch (e) {
       throw ServerException(
-        message:
-            e.response?.data?['message']?.toString() ?? 'Erro ao obter usuário',
+        message: _extrairMensagemErro(e) ?? 'Erro ao obter usuário',
         statusCode: e.response?.statusCode,
       );
     }
+  }
+
+  /// Extrai mensagem de erro do response de forma segura.
+  /// O corpo pode ser Map, String (HTML) ou null — nunca deve lançar TypeError.
+  String? _extrairMensagemErro(DioException e) {
+    try {
+      final data = e.response?.data;
+      if (data is Map) {
+        return data['message']?.toString();
+      }
+    } catch (_) {}
+    return null;
   }
 }

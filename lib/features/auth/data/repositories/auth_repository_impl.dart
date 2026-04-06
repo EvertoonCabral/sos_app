@@ -59,14 +59,17 @@ class AuthRepositoryImpl implements AuthRepository {
         final model = await remoteDatasource.getUsuarioAtual();
         await localDatasource.salvarUsuario(model);
         return model.toEntity();
-      } on ServerException {
-        // Token inválido/expirado — limpar sessão
-        await localDatasource.limparDados();
-        return null;
+      } on ServerException catch (e) {
+        if (e.statusCode == 401) {
+          // Token inválido/expirado — limpar sessão e redirecionar para login
+          await localDatasource.limparDados();
+          return null;
+        }
+        // Backend fora do ar (404, 5xx) — usar cache local
       }
     }
 
-    // Offline — retorna cache local
+    // Offline ou backend indisponível — retorna cache local
     final cachedUser = await localDatasource.obterUsuario();
     return cachedUser?.toEntity();
   }

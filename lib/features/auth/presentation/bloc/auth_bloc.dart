@@ -45,10 +45,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(const AuthCarregando());
-    final usuario = await _obterUsuarioLogado();
-    if (usuario != null) {
-      emit(AuthAutenticado(usuario));
-    } else {
+    try {
+      final usuario = await _obterUsuarioLogado();
+      if (usuario != null) {
+        emit(AuthAutenticado(usuario));
+      } else {
+        emit(const AuthNaoAutenticado());
+      }
+    } catch (_) {
       emit(const AuthNaoAutenticado());
     }
   }
