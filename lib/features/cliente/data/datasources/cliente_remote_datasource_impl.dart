@@ -10,6 +10,14 @@ class ClienteRemoteDatasourceImpl implements ClienteRemoteDatasource {
 
   final Dio _dio;
 
+  String? _extrairMensagem(DioException e) {
+    try {
+      final data = e.response?.data;
+      if (data is Map) return data['message']?.toString();
+    } catch (_) {}
+    return null;
+  }
+
   @override
   Future<ClienteModel> criar(ClienteModel model) async {
     try {
@@ -20,8 +28,7 @@ class ClienteRemoteDatasourceImpl implements ClienteRemoteDatasource {
       return ClienteModel.fromJson(response.data!);
     } on DioException catch (e) {
       throw ServerException(
-        message:
-            e.response?.data?['message']?.toString() ?? 'Erro ao criar cliente',
+        message: _extrairMensagem(e) ?? 'Erro ao criar cliente',
         statusCode: e.response?.statusCode,
       );
     }
@@ -37,8 +44,7 @@ class ClienteRemoteDatasourceImpl implements ClienteRemoteDatasource {
       return ClienteModel.fromJson(response.data!);
     } on DioException catch (e) {
       throw ServerException(
-        message: e.response?.data?['message']?.toString() ??
-            'Erro ao atualizar cliente',
+        message: _extrairMensagem(e) ?? 'Erro ao atualizar cliente',
         statusCode: e.response?.statusCode,
       );
     }
@@ -65,8 +71,7 @@ class ClienteRemoteDatasourceImpl implements ClienteRemoteDatasource {
       ).items;
     } on DioException catch (e) {
       throw ServerException(
-        message: e.response?.data?['message']?.toString() ??
-            'Erro ao buscar clientes',
+        message: _extrairMensagem(e) ?? 'Erro ao buscar clientes',
         statusCode: e.response?.statusCode,
       );
     }
@@ -79,8 +84,7 @@ class ClienteRemoteDatasourceImpl implements ClienteRemoteDatasource {
       return ClienteModel.fromJson(response.data!);
     } on DioException catch (e) {
       throw ServerException(
-        message:
-            e.response?.data?['message']?.toString() ?? 'Erro ao obter cliente',
+        message: _extrairMensagem(e) ?? 'Erro ao obter cliente',
         statusCode: e.response?.statusCode,
       );
     }

@@ -17,8 +17,7 @@ class GeoServiceImpl implements GeoService {
     },
   ));
 
-  static const _nominatimUrl =
-      'https://nominatim.openstreetmap.org/search';
+  static const _nominatimUrl = 'https://nominatim.openstreetmap.org/search';
 
   @override
   Future<List<LocalGeo>> autocompletar(String query) async {
@@ -41,7 +40,8 @@ class GeoServiceImpl implements GeoService {
           .whereType<Map<String, dynamic>>()
           .map((item) {
             final addr = item['address'] as Map<String, dynamic>?;
-            final texto = _formatarEndereco(addr, item['display_name'] as String? ?? '');
+            final texto =
+                _formatarEndereco(addr, item['display_name'] as String? ?? '');
             return LocalGeo(
               enderecoTexto: texto,
               latitude: double.tryParse(item['lat']?.toString() ?? '') ?? 0.0,
@@ -61,11 +61,12 @@ class GeoServiceImpl implements GeoService {
 
     final rua = addr['road'] as String? ?? '';
     final numero = addr['house_number'] as String? ?? '';
-    final bairro = addr['suburb'] as String?
-        ?? addr['neighbourhood'] as String? ?? '';
-    final cidade = addr['city'] as String?
-        ?? addr['town'] as String?
-        ?? addr['village'] as String? ?? '';
+    final bairro =
+        addr['suburb'] as String? ?? addr['neighbourhood'] as String? ?? '';
+    final cidade = addr['city'] as String? ??
+        addr['town'] as String? ??
+        addr['village'] as String? ??
+        '';
     final estado = addr['state'] as String? ?? '';
 
     final parts = <String>[

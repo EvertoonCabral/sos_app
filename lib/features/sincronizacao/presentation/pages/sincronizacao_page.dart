@@ -178,8 +178,11 @@ class _SincronizacaoPageState extends State<SincronizacaoPage> {
         ? (Icons.cloud_done, Colors.green, 'Tudo sincronizado')
         : comErro > 0
             ? (Icons.cloud_off, Colors.red, '$comErro item(ns) com erro')
-            : (Icons.cloud_upload, Colors.orange,
-                '$pendentes item(ns) pendente(s)');
+            : (
+                Icons.cloud_upload,
+                Colors.orange,
+                '$pendentes item(ns) pendente(s)'
+              );
 
     return Card(
       child: ListTile(
@@ -194,8 +197,7 @@ class _SincronizacaoPageState extends State<SincronizacaoPage> {
   }
 
   Widget _buildFilaCard(ThemeData theme) {
-    final porEntidade =
-        _resumo!['porEntidade'] as Map<String, int>? ?? {};
+    final porEntidade = _resumo!['porEntidade'] as Map<String, int>? ?? {};
 
     if (porEntidade.isEmpty) {
       return const SizedBox.shrink();
@@ -233,8 +235,7 @@ class _SincronizacaoPageState extends State<SincronizacaoPage> {
                         color: theme.colorScheme.primary,
                       ),
                       const SizedBox(width: 12),
-                      Expanded(
-                          child: Text(nomes[e.key] ?? e.key)),
+                      Expanded(child: Text(nomes[e.key] ?? e.key)),
                       Text(
                         '${e.value}',
                         style: theme.textTheme.titleSmall?.copyWith(
@@ -257,8 +258,7 @@ class _SincronizacaoPageState extends State<SincronizacaoPage> {
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: theme.colorScheme.secondaryContainer,
-          child: Icon(Icons.cloud_download,
-              color: theme.colorScheme.secondary),
+          child: Icon(Icons.cloud_download, color: theme.colorScheme.secondary),
         ),
         title: const Text('Último download do servidor'),
         subtitle: Text(

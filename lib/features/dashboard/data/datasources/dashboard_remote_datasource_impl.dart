@@ -12,6 +12,14 @@ class DashboardRemoteDatasourceImpl implements DashboardRemoteDatasource {
 
   final Dio _dio;
 
+  String? _extrairMensagem(DioException e) {
+    try {
+      final data = e.response?.data;
+      if (data is Map) return data['message']?.toString();
+    } catch (_) {}
+    return null;
+  }
+
   @override
   Future<ResumoPeriodoModel> obterResumoPeriodo({
     required DateTime inicio,
@@ -32,8 +40,7 @@ class DashboardRemoteDatasourceImpl implements DashboardRemoteDatasource {
       return ResumoPeriodoModel.fromJson(data);
     } on DioException catch (e) {
       throw ServerException(
-        message: e.response?.data?['message']?.toString() ??
-            'Erro ao obter resumo do dashboard',
+        message: _extrairMensagem(e) ?? 'Erro ao obter resumo do dashboard',
         statusCode: e.response?.statusCode,
       );
     }
@@ -55,8 +62,7 @@ class DashboardRemoteDatasourceImpl implements DashboardRemoteDatasource {
           .toList();
     } on DioException catch (e) {
       throw ServerException(
-        message: e.response?.data?['message']?.toString() ??
-            'Erro ao obter ranking de clientes',
+        message: _extrairMensagem(e) ?? 'Erro ao obter ranking de clientes',
         statusCode: e.response?.statusCode,
       );
     }
@@ -82,8 +88,7 @@ class DashboardRemoteDatasourceImpl implements DashboardRemoteDatasource {
       return TempoPorEtapaModel.fromJson(data);
     } on DioException catch (e) {
       throw ServerException(
-        message: e.response?.data?['message']?.toString() ??
-            'Erro ao obter tempo por etapa',
+        message: _extrairMensagem(e) ?? 'Erro ao obter tempo por etapa',
         statusCode: e.response?.statusCode,
       );
     }
@@ -105,8 +110,7 @@ class DashboardRemoteDatasourceImpl implements DashboardRemoteDatasource {
           .toList();
     } on DioException catch (e) {
       throw ServerException(
-        message: e.response?.data?['message']?.toString() ??
-            'Erro ao obter atendimentos por dia',
+        message: _extrairMensagem(e) ?? 'Erro ao obter atendimentos por dia',
         statusCode: e.response?.statusCode,
       );
     }
